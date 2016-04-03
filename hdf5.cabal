@@ -22,39 +22,39 @@ Library
   hs-source-dirs:       src
   ghc-options:          -fwarn-unused-imports -fwarn-unused-binds
   exposed-modules:      Bindings.HDF5
-                        Bindings.HDF5.Core
-                        Bindings.HDF5.Dataset
-                        Bindings.HDF5.Dataspace
-                        Bindings.HDF5.Datatype
-                        Bindings.HDF5.Datatype.Internal
-                        Bindings.HDF5.Error
-                        Bindings.HDF5.ErrorCodes
-                        Bindings.HDF5.File
-                        Bindings.HDF5.Group
-                        Bindings.HDF5.Link
-                        Bindings.HDF5.Object
-                        Bindings.HDF5.PropertyList
-                        Bindings.HDF5.PropertyList.DAPL
-                        Bindings.HDF5.PropertyList.DCPL
-                        Bindings.HDF5.PropertyList.DXPL
-                        Bindings.HDF5.PropertyList.FAPL
-                        Bindings.HDF5.PropertyList.FMPL
-                        Bindings.HDF5.PropertyList.FCPL
-                        Bindings.HDF5.PropertyList.OCPL
-                        Bindings.HDF5.PropertyList.GAPL
-                        Bindings.HDF5.PropertyList.GCPL
-                        Bindings.HDF5.PropertyList.LAPL
-                        Bindings.HDF5.PropertyList.LCPL
-                        Bindings.HDF5.PropertyList.OCPYPL
-                        Bindings.HDF5.PropertyList.STRCPL
-                        Bindings.HDF5.PropertyList.TAPL
-                        Bindings.HDF5.PropertyList.TCPL
+                      , Bindings.HDF5.Core
+                      , Bindings.HDF5.Dataset
+                      , Bindings.HDF5.Dataspace
+                      , Bindings.HDF5.Datatype
+                      , Bindings.HDF5.Datatype.Internal
+                      , Bindings.HDF5.Error
+                      , Bindings.HDF5.ErrorCodes
+                      , Bindings.HDF5.File
+                      , Bindings.HDF5.Group
+                      , Bindings.HDF5.Link
+                      , Bindings.HDF5.Object
+                      , Bindings.HDF5.PropertyList
+                      , Bindings.HDF5.PropertyList.DAPL
+                      , Bindings.HDF5.PropertyList.DCPL
+                      , Bindings.HDF5.PropertyList.DXPL
+                      , Bindings.HDF5.PropertyList.FAPL
+                      , Bindings.HDF5.PropertyList.FCPL
+                      , Bindings.HDF5.PropertyList.FMPL
+                      , Bindings.HDF5.PropertyList.GAPL
+                      , Bindings.HDF5.PropertyList.GCPL
+                      , Bindings.HDF5.PropertyList.LAPL
+                      , Bindings.HDF5.PropertyList.LCPL
+                      , Bindings.HDF5.PropertyList.OCPL
+                      , Bindings.HDF5.PropertyList.OCPYPL
+                      , Bindings.HDF5.PropertyList.STRCPL
+                      , Bindings.HDF5.PropertyList.TAPL
+                      , Bindings.HDF5.PropertyList.TCPL
                         
-  other-modules:        Bindings.HDF5.Core.HId
-                        Bindings.HDF5.Core.HDFResultType
+  other-modules:        Bindings.HDF5.Core.HDFResultType
+                      , Bindings.HDF5.Core.HId
                         
-  build-depends:        base >= 3 && < 5,
-                        bindings-hdf5,
-                        bytestring,
-                        tagged,
-                        vector
+  build-depends:        base >= 3 && < 5
+                      , bindings-hdf5
+                      , bytestring
+                      , tagged
+                      , vector

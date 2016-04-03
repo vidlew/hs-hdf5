@@ -56,7 +56,7 @@ readHDF5Error err = do
     func <- BS.packCString (h5e_error2_t'func_name err)
     file <- BS.packCString (h5e_error2_t'file_name err)
     desc <- BS.packCString (h5e_error2_t'desc err)
-    
+
     return HDF5Error
         { classId       = ErrorClassID (h5e_error2_t'cls_id err)
         , majorNum      = majorErrorFromCode (h5e_error2_t'maj_num err)
@@ -78,22 +78,22 @@ withErrorWhen :: (t -> Bool) -> IO t -> IO t
 withErrorWhen isError action = do
     -- h5e_try does not alter the stack, just suspends the 'automatic' exception handler
     result <- h5e_try action
-    
+
     if isError result
         then do
             stackId <- h5e_get_current_stack
             errors  <- newIORef []
-            
+
             walk <- wrapStackWalk $ \_ (In err) _ -> do
                 err_desc <- readHDF5Error =<< peek err
                 modifyIORef errors (err_desc :)
                 return (HErr_t 0)
-            
+
             h5e_walk2 stackId h5e_WALK_DOWNWARD walk (InOut nullPtr)
                 `finally` do
                     freeHaskellFunPtr walk
                     h5e_close_stack stackId
-            
+
             errs <- readIORef errors
             throwIO (HDF5Exception errs)
         else return result
@@ -128,7 +128,7 @@ unregisterErrorClass (ErrorClassID hid) = do
     return ()
 
 createMajorErrCode :: ErrorClassID -> BS.ByteString -> IO MajorErrCode
-createMajorErrCode (ErrorClassID cls) msg = 
+createMajorErrCode (ErrorClassID cls) msg =
     fmap UnknownMajor $
         withErrorCheck $
             BS.useAsCString msg $ \msg ->
@@ -145,7 +145,7 @@ releaseMajorErrCode otherErr = fail $ concat
     ]
 
 createMinorErrCode :: ErrorClassID -> BS.ByteString -> IO MinorErrCode
-createMinorErrCode (ErrorClassID cls) msg = 
+createMinorErrCode (ErrorClassID cls) msg =
     fmap UnknownMinor $
         withErrorCheck $
             BS.useAsCString msg $ \msg ->

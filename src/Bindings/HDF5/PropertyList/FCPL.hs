@@ -1,28 +1,28 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Bindings.HDF5.PropertyList.FCPL
     ( module Bindings.HDF5.PropertyList.GCPL
-    
+
     , FCPL
     , FileCreationPropertyList(..)
-    
+
     , setUserblock
     , getUserblock
-    
+
     , setSizes
     , getSizes
-    
+
     , setSymK
     , getSymK
-    
+
     , setIstoreK
     , getIstoreK
-    
+
     , setSharedMesgNIndexes
     , getSharedMesgNIndexes
-    
+
     , setSharedMesgIndex
     , getSharedMesgIndex
-    
+
     , setSharedMesgPhaseChange
     , getSharedMesgPhaseChange
     ) where
@@ -55,7 +55,7 @@ setUserblock fcpl sz =
 getUserblock :: FileCreationPropertyList fcpl => fcpl -> IO HSize
 getUserblock fcpl =
     fmap HSize $
-        withOut_ $ \sz -> 
+        withOut_ $ \sz ->
             withErrorCheck_ $
                 h5p_get_userblock (hid fcpl) sz
 
@@ -77,7 +77,7 @@ setSymK fcpl mbIK mbLK =
         h5p_set_sym_k (hid fcpl) (fromMaybe 0 mbIK) (fromMaybe 0 mbLK)
 
 getSymK :: FileCreationPropertyList fcpl => fcpl -> IO (CUInt, CUInt)
-getSymK fcpl = 
+getSymK fcpl =
     withOut $ \ik ->
         withOut_ $ \lk ->
             withErrorCheck_ $
@@ -90,7 +90,7 @@ setIstoreK fcpl ik =
 
 getIstoreK :: FileCreationPropertyList fcpl => fcpl -> IO CUInt
 getIstoreK fcpl =
-    withOut_ $ \ik -> 
+    withOut_ $ \ik ->
         withErrorCheck_ $
             h5p_get_istore_k (hid fcpl) ik
 

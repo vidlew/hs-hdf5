@@ -1,10 +1,10 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Bindings.HDF5.PropertyList.DXPL
     ( module Bindings.HDF5.PropertyList
-    
+
     , DXPL
     , DatasetTransferPropertyList(..)
-    
+
     ) where
 
 import Bindings.HDF5.Core

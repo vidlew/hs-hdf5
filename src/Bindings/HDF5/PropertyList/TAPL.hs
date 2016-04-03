@@ -1,10 +1,10 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Bindings.HDF5.PropertyList.TAPL
     ( module Bindings.HDF5.PropertyList.LAPL
-    
+
     , TAPL
     , DatatypeAccessPropertyList(..)
-    
+
     ) where
 
 import Bindings.HDF5.Core

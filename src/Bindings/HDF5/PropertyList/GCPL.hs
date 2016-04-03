@@ -1,19 +1,19 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Bindings.HDF5.PropertyList.GCPL
     ( module Bindings.HDF5.PropertyList.OCPL
-    
+
     , GCPL
     , GroupCreationPropertyList(..)
-    
+
     , setLocalHeapSizeHint
     , getLocalHeapSizeHint
-    
+
     , setLinkPhaseChange
     , getLinkPhaseChange
-    
+
     , getEstLinkInfo
     , setEstLinkInfo
-    
+
     , CreationOrder(..)
     , setLinkCreationOrder
     , getLinkCreationOrder
@@ -37,7 +37,7 @@ instance GroupCreationPropertyList GCPL
 
 setLocalHeapSizeHint :: GroupCreationPropertyList gcpl => gcpl -> CSize -> IO ()
 setLocalHeapSizeHint gcpl sz =
-    withErrorCheck_ $ 
+    withErrorCheck_ $
         h5p_set_local_heap_size_hint (hid gcpl) sz
 
 getLocalHeapSizeHint :: GroupCreationPropertyList gcpl => gcpl -> IO CSize

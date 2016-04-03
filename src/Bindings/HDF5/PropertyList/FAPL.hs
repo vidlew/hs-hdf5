@@ -1,13 +1,13 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Bindings.HDF5.PropertyList.FAPL
     ( module Bindings.HDF5.PropertyList
-    
+
     , FAPL
     , FileAccessPropertyList(..)
-    
+
     , setAlignment
     , getAlignment
-    
+
     , setFamilyOffset
     , getFamilyOffset
     ) where

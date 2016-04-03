@@ -18,29 +18,29 @@ module Bindings.HDF5.PropertyList
     , objectCopy
     , linkCreate
     , linkAccess
-    
+
     , getClassName
-    
+
     , PropertyListID
     , PropertyListOrClass(..)
     , PropertyList(..)
     , Tagged(..)
     , castPropertyList
-    
+
     , createPropertyList
     , createPropertyListWithClass
-    
+
     , propertyExists
     , getPropertySize
     , getNProps
-    
+
     , getPropertyListClass
     , getPropertyListClassParent
-    
+
     , propertyListsEqual
-    
+
     , propertyListIsA
-    
+
     , closePropertyListClass
     , closePropertyList
     ) where
@@ -81,10 +81,10 @@ getClassName :: PropertyListClassID -> IO BS.ByteString
 getClassName (PropertyListClassID cls) = do
     name <- withErrorWhen (nullPtr ==) $
         h5p_get_class_name cls
-    
+
     nameStr <- BS.packCString name
     free name
-    
+
     return nameStr
 
 newtype PropertyListID = PropertyListID HId_t
@@ -118,12 +118,12 @@ createPropertyList :: PropertyList t => IO t
 createPropertyList = create staticPlistClass
     where
         create :: PropertyList t => Tagged t PropertyListClassID -> IO t
-        create (Tagged cls) 
+        create (Tagged cls)
             = fmap uncheckedCastPlist
                 $ createPropertyListWithClass cls
 
 createPropertyListWithClass :: PropertyListClassID -> IO PropertyListID
-createPropertyListWithClass (PropertyListClassID cls) = 
+createPropertyListWithClass (PropertyListClassID cls) =
     fmap PropertyListID $
         withErrorCheck $
             h5p_create cls
@@ -135,14 +135,14 @@ propertyExists plist name =
             h5p_exist (hid plist) name
 
 getPropertySize :: PropertyListOrClass t => t -> BS.ByteString -> IO CSize
-getPropertySize plist name = 
+getPropertySize plist name =
     withOut_ $ \sz ->
         withErrorCheck_ $
             BS.useAsCString name $ \name ->
                 h5p_get_size (hid plist) name sz
 
 getNProps :: PropertyListOrClass t => t -> IO CSize
-getNProps plist = 
+getNProps plist =
     withOut_ $ \sz ->
         withErrorCheck_ $
             h5p_get_nprops (hid plist) sz

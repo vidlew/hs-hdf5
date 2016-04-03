@@ -7,11 +7,11 @@ module Bindings.HDF5.Datatype
     , Normalization(..)
     , Pad(..)
     , StringPad(..)
-    
+
     , NativeType(..)
     , nativeTypeOf
     , nativeTypeOf1
-    
+
     , module Bindings.HDF5.Datatype
     ) where
 
@@ -330,14 +330,14 @@ committedTypeID (Datatype t) =
         h5t_committed t
 
 encodeTypeID :: Datatype -> IO BS.ByteString
-encodeTypeID (Datatype t) = 
+encodeTypeID (Datatype t) =
     withOutByteString $ \buf bufSz ->
         withInOut_ bufSz $ \bufSz ->
             withErrorCheck_ $
                 h5t_encode t buf bufSz
 
 decodeTypeID :: BS.ByteString -> IO Datatype
-decodeTypeID bs = 
+decodeTypeID bs =
     fmap Datatype $
         BS.unsafeUseAsCString bs $ \buf ->
             h5t_decode (InArray buf)
@@ -351,7 +351,7 @@ insertCompoundTypeMember (Datatype parent) name offset (Datatype member) =
             h5t_insert parent name offset member
 
 packCompoundType :: Datatype -> IO ()
-packCompoundType (Datatype t) = 
+packCompoundType (Datatype t) =
     withErrorCheck_ $
         h5t_pack t
 
@@ -386,7 +386,7 @@ createArrayType (Datatype base) dims =
                 h5t_array_create2 base nDims dims
     where nDims = genericLength dims
 
-getArrayTypeNDims :: Datatype -> IO CInt 
+getArrayTypeNDims :: Datatype -> IO CInt
 getArrayTypeNDims (Datatype t) =
     withErrorWhen (< 0) $
         h5t_get_array_ndims t
@@ -394,13 +394,13 @@ getArrayTypeNDims (Datatype t) =
 getArrayTypeDims :: Datatype -> IO [HSize]
 getArrayTypeDims (Datatype t) = do
     nDims <- getArrayTypeNDims (Datatype t)
-    
+
     fmap (map HSize . fst) $
         withOutList' (fromIntegral nDims) $ \dims ->
             fmap fromIntegral $
                  withErrorWhen (< 0) $
                     h5t_get_array_dims2 t dims
-    
+
 
 -- * Operations defined on opaque datatypes
 
@@ -458,20 +458,20 @@ getTypeOffset (Datatype t) =
 
 getTypePad :: Datatype -> IO (Pad, Pad)
 getTypePad (Datatype t) = do
-    (msb, lsb) <- 
+    (msb, lsb) <-
         withOut $ \msb ->
-            withOut_ $ \lsb -> 
+            withOut_ $ \lsb ->
                 withErrorCheck $
                     h5t_get_pad t msb lsb
     return (padFromCode msb, padFromCode lsb)
 
 getFloatTypeFields :: Datatype -> IO (CSize, CSize, CSize, CSize, CSize)
 getFloatTypeFields (Datatype t) = do
-    (spos, (epos, (esize, (mpos, msize)))) <- 
+    (spos, (epos, (esize, (mpos, msize)))) <-
         withOut $ \spos ->
             withOut $ \epos ->
                 withOut $ \esize ->
-                    withOut $ \mpos -> 
+                    withOut $ \mpos ->
                         withOut_ $ \msize ->
                             withErrorCheck_ $
                                 h5t_get_fields t spos epos esize mpos msize
@@ -532,7 +532,7 @@ getMemberIndex (Datatype t) bs =
 -- getMemberValue
 -- getCharSet
 -- isVariableString
--- getNativeType 
+-- getNativeType
 
 -- * Setting property values
 

@@ -1,40 +1,40 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Bindings.HDF5.PropertyList.DCPL
     ( module Bindings.HDF5.PropertyList.OCPL
-    
+
     , DCPL
     , DatasetCreationPropertyList(..)
-    
+
     , Layout(..)
     , setLayout
     , getLayout
-    
+
     , setChunk
     , getChunk
-    
+
     , setExternal
     , getExternalCount
     , getExternalN
     , getExternal
-    
+
     , setSZip
-    
+
     , setShuffle
-    
+
     , setNBit
-    
+
     , ScaleType(..)
     , setScaleOffset
-    
+
     , setFillValue
     , getFillValue
     , FillValueDefaultType(..)
     , fillValueDefined
-    
+
     , AllocTime(..)
     , setAllocTime
     , getAllocTime
-    
+
     , FillTime(..)
     , setFillTime
     , getFillTime
@@ -106,7 +106,7 @@ getChunk :: DatasetCreationPropertyList t => t -> IO [HSize]
 getChunk plist = do
     n <- withErrorWhen (< 0) $
         h5p_get_chunk (hid plist) 0 (OutArray nullPtr)
-    
+
     fmap (map HSize) $
         withOutList_ (fromIntegral n) $ \buf ->
             withErrorWhen_ (< 0) $
@@ -127,14 +127,14 @@ getExternalN :: DatasetCreationPropertyList t => t -> CUInt -> CSize -> IO (BS.B
 getExternalN plist idx name_size = do
     let sz = fromIntegral name_size
     name <- mallocBytes sz
-    
-    (offset, size) <- 
-        withOut $ \offset -> 
+
+    (offset, size) <-
+        withOut $ \offset ->
             withOut_ $ \size ->
                 withErrorCheck_ $
                     h5p_get_external (hid plist) idx name_size (OutArray name) offset size
     -- TODO: this will leak memory if an exception is thrown
-    
+
     name <- BS.unsafePackCStringLen (name, sz)
     return (BS.takeWhile (0 /=) name, offset, HSize size)
 

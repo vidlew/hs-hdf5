@@ -1,6 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
--- |The HDF5 C type @hid_t@ is used to represent many, many different things.  
+-- |The HDF5 C type @hid_t@ is used to represent many, many different things.
 -- In this Haskell interface, it is always wrapped up in a newtype
 -- indicating its intent.  These newtypes all need to be convertible to
 -- and from 'HId_t' in order to actually use them with the raw bindings.

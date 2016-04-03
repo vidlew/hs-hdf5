@@ -1,30 +1,30 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Bindings.HDF5.PropertyList.OCPL
     ( module Bindings.HDF5.PropertyList
-    
+
     , OCPL
     , ObjectCreationPropertyList(..)
-    
+
     , setAttrPhaseChange
     , getAttrPhaseChange
-    
+
     , setAttrCreationOrder
     , getAttrCreationOrder
-    
+
     , setObjTrackTimes
     , getObjTrackTimes
-    
+
     , modifyFilter
     , setFilter
-    
+
     , getNFilters
-    
+
     , allFiltersAvail
-    
+
     , removeFilter
-    
+
     , setDeflate
-    
+
     , setFletcher32
     ) where
 

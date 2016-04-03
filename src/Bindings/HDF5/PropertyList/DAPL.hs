@@ -1,10 +1,10 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Bindings.HDF5.PropertyList.DAPL
     ( module Bindings.HDF5.PropertyList.LAPL
-    
+
     , DAPL
     , DatasetAccessPropertyList(..)
-    
+
     , setChunkCache
     , getChunkCache
     ) where

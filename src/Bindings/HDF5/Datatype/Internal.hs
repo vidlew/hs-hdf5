@@ -51,31 +51,31 @@ data Class
     deriving (Eq, Ord, Enum, Bounded, Read, Show)
 
 classCode :: Class -> H5T_class_t
-classCode Integer   = h5t_INTEGER  
-classCode Float     = h5t_FLOAT    
-classCode Time      = h5t_TIME     
-classCode String    = h5t_STRING   
-classCode BitField  = h5t_BITFIELD 
-classCode Opaque    = h5t_OPAQUE   
-classCode Compound  = h5t_COMPOUND 
+classCode Integer   = h5t_INTEGER
+classCode Float     = h5t_FLOAT
+classCode Time      = h5t_TIME
+classCode String    = h5t_STRING
+classCode BitField  = h5t_BITFIELD
+classCode Opaque    = h5t_OPAQUE
+classCode Compound  = h5t_COMPOUND
 classCode Reference = h5t_REFERENCE
-classCode Enum      = h5t_ENUM     
-classCode VLen      = h5t_VLEN     
-classCode Array     = h5t_ARRAY    
+classCode Enum      = h5t_ENUM
+classCode VLen      = h5t_VLEN
+classCode Array     = h5t_ARRAY
 
 classFromCode :: H5T_class_t -> Class
 classFromCode c
-    | c == h5t_INTEGER      = Integer  
-    | c == h5t_FLOAT        = Float    
-    | c == h5t_TIME         = Time     
-    | c == h5t_STRING       = String   
-    | c == h5t_BITFIELD     = BitField 
-    | c == h5t_OPAQUE       = Opaque   
-    | c == h5t_COMPOUND     = Compound 
+    | c == h5t_INTEGER      = Integer
+    | c == h5t_FLOAT        = Float
+    | c == h5t_TIME         = Time
+    | c == h5t_STRING       = String
+    | c == h5t_BITFIELD     = BitField
+    | c == h5t_OPAQUE       = Opaque
+    | c == h5t_COMPOUND     = Compound
     | c == h5t_REFERENCE    = Reference
-    | c == h5t_ENUM         = Enum     
-    | c == h5t_VLEN         = VLen     
-    | c == h5t_ARRAY        = Array    
+    | c == h5t_ENUM         = Enum
+    | c == h5t_VLEN         = VLen
+    | c == h5t_ARRAY        = Array
     | otherwise = error ("Unknown H5T_class_t " ++ show c)
 
 data CSet

@@ -1,15 +1,15 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Bindings.HDF5.Group
     ( Group
-    
+
     , createGroup
     , createAnonymousGroup
     , openGroup
     , closeGroup
-    
+
     , GroupStorageType(..)
     , GroupInfo(..)
-    
+
     , getGroupInfo
     , getGroupInfoByName
     ) where
@@ -88,7 +88,7 @@ readGroupInfo (H5G_info_t a b c d) = GroupInfo (groupStorageTypeFromCode a) (HSi
 getGroupInfo :: Group -> IO GroupInfo
 getGroupInfo (Group group_id) =
     fmap readGroupInfo $
-        withOut_ $ \info -> 
+        withOut_ $ \info ->
             withErrorCheck_ $
                 h5g_get_info group_id info
 

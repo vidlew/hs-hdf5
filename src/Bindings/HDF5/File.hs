@@ -4,29 +4,29 @@ module Bindings.HDF5.File
     ( AccFlags(..)
     , ObjType(..)
     , Scope(..)
-    
+
     , isHDF5
-    
+
     , File
     , createFile
     , openFile
     , reopenFile
     , flushFile
     , closeFile
-    
+
     , mountFile
     , unmountFile
-     
+
     , getFileSize
     , getFileCreatePlist
     , getFileAccessPlist
-    
+
     , FileInfo(..)
     , getFileInfo
     , getFileIntent
     , getFileName
     , getFileObjCount
-        
+
     , getOpenObjects
     , getFileFreespace
 --    , get_mdc_config
@@ -185,14 +185,14 @@ openFile filename flags access_plist =
                 h5f_open filename (accFlagsToInt flags) (maybe h5p_DEFAULT hid access_plist)
 
 reopenFile :: File -> IO File
-reopenFile (File file_id) = 
+reopenFile (File file_id) =
     fmap File $
         withErrorCheck $
             h5f_reopen file_id
 
 flushFile :: File -> Scope -> IO ()
 flushFile (File file_id) scope =
-    withErrorCheck_ $ 
+    withErrorCheck_ $
         h5f_flush file_id (scopeCode scope)
 
 closeFile :: File -> IO ()
@@ -200,13 +200,13 @@ closeFile (File file_id) =
     withErrorCheck_ (h5f_close file_id)
 
 mountFile :: Location loc => loc -> BS.ByteString -> File -> Maybe FMPL -> IO ()
-mountFile loc groupname (File file_id) mount_plist = 
+mountFile loc groupname (File file_id) mount_plist =
     withErrorCheck_ $
         BS.useAsCString groupname $ \groupname ->
             h5f_mount (hid loc) groupname file_id (maybe h5p_DEFAULT hid mount_plist)
 
 unmountFile :: Location loc => loc -> BS.ByteString -> IO ()
-unmountFile loc groupname = 
+unmountFile loc groupname =
     withErrorCheck_ $
         BS.useAsCString groupname $ \groupname ->
             h5f_unmount (hid loc) groupname
@@ -240,21 +240,21 @@ readFileInfo :: H5F_info_t -> FileInfo
 readFileInfo (H5F_info_t a b (H5_ih_info_t c d)) = FileInfo (HSize a) (HSize b) (IH_Info (HSize c) (HSize d))
 
 getFileInfo :: Object obj => obj -> IO FileInfo
-getFileInfo obj = 
+getFileInfo obj =
     fmap readFileInfo $
         withOut_ $ \info ->
             withErrorCheck $
                 h5f_get_info (hid obj) info
 
 getFileIntent :: File -> IO [AccFlags]
-getFileIntent (File file_id) = 
+getFileIntent (File file_id) =
     fmap intToAccFlags $
         withOut_ $ \intent ->
             withErrorCheck_ $
                 h5f_get_intent file_id intent
 
 getFileName :: File -> IO BS.ByteString
-getFileName (File file_id) = 
+getFileName (File file_id) =
     withOutByteString $ \buf bufSz ->
         withErrorWhen (< 0) $
             h5f_get_name file_id buf bufSz
@@ -268,7 +268,7 @@ getFileObjCount mbFile local objTypes =
 getOpenObjects :: Maybe File -> Bool -> [ObjType] -> IO (SV.Vector ObjectId)
 getOpenObjects mbFile local objTypes = do
     n <- getFileObjCount mbFile local objTypes
-    
+
     withOutVector' (fromIntegral n) $ \objects ->
         withErrorWhen (< 0) $
             h5f_get_obj_ids (maybe (HId_t h5f_OBJ_ALL) hid mbFile) (objTypesToInt objTypes .|. if local then 0 else h5f_OBJ_LOCAL) n (castWrappedPtr objects)

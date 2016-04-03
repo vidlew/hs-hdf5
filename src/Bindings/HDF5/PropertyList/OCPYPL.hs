@@ -1,7 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Bindings.HDF5.PropertyList.OCPYPL
     ( module Bindings.HDF5.PropertyList
-    
+
     , OCPYPL
     , ObjectCopyPropertyList(..)
     ) where

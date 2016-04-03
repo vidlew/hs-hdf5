@@ -1,19 +1,19 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Bindings.HDF5.PropertyList.LAPL
     ( module Bindings.HDF5.PropertyList
-    
+
     , LAPL
     , LinkAccessPropertyList(..)
-    
+
     , setNLinks
     , getNLinks
-    
+
     , setELinkPrefix
     , getELinkPrefix
-    
+
     , setELinkFAPL
     , getELinkFAPL
-    
+
     , setELinkAccFlags
     , getELinkAccFlags
     ) where
@@ -59,24 +59,24 @@ getELinkPrefix lapl = do
             h5p_get_elink_prefix (hid lapl) buf bufSz
 
 getELinkFAPL :: LinkAccessPropertyList lapl => lapl -> IO FAPL
-getELinkFAPL lapl = 
+getELinkFAPL lapl =
     fmap uncheckedFromHId $
         withErrorCheck $
             h5p_get_elink_fapl (hid lapl)
 
 setELinkFAPL :: LinkAccessPropertyList lapl => lapl -> FAPL -> IO ()
-setELinkFAPL lapl fapl = 
+setELinkFAPL lapl fapl =
     withErrorCheck_ $
         h5p_set_elink_fapl (hid lapl) (hid fapl)
 
 -- TODO: an enumeration type for these flags
 setELinkAccFlags :: LinkAccessPropertyList lapl => lapl -> CUInt -> IO ()
-setELinkAccFlags lapl flags = 
+setELinkAccFlags lapl flags =
     withErrorCheck_ $
         h5p_set_elink_acc_flags (hid lapl) flags
 
 getELinkAccFlags :: LinkAccessPropertyList lapl => lapl -> IO CUInt
-getELinkAccFlags lapl = 
+getELinkAccFlags lapl =
     withOut_ $ \flags ->
         withErrorCheck_ $
             h5p_get_elink_acc_flags (hid lapl) flags

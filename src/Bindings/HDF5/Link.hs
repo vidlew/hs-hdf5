@@ -3,22 +3,22 @@ module Bindings.HDF5.Link
     ( createHardLink
     , createSoftLink
     , createExternalLink
-    
+
     , doesLinkExist
-    
+
     , moveLink
     , copyLink
     , deleteLink
-    
+
     , LinkType(..)
     , LinkInfo(..)
     , getLinkInfo
-    
+
     , getSymLinkVal
-    
+
     , iterateLinks
     , iterateLinksByName
-    
+
     , visitLinks
     , visitLinksByName
     ) where
@@ -140,23 +140,23 @@ getLinkInfo loc name lapl =
                     h5l_get_info (hid loc) name info (maybe h5p_DEFAULT hid lapl)
 
 getSymLinkVal :: Location loc => loc -> BS.ByteString -> Maybe LAPL -> IO BS.ByteString
-getSymLinkVal loc name mb_lapl = 
+getSymLinkVal loc name mb_lapl =
     BS.useAsCString name $ \name -> do
         let lapl = maybe h5p_DEFAULT hid mb_lapl
         info <- withOut_ $ \info ->
             withErrorCheck_ $
                     h5l_get_info (hid loc) name info lapl
-        
+
         let n = h5l_info_t'u'val_size info
-        
+
         buf <- mallocBytes (fromIntegral n)
-        
+
         withErrorCheck_ $
             h5l_get_val (hid loc) name (OutArray buf) n lapl
         -- TODO: this will leak memory if an exception is thrown
-        
+
         BS.packCStringLen (buf, fromIntegral n)
-        
+
 
 foreign import ccall "wrapper" wrap_H5L_iterate_t
     :: (HId_t -> CString -> In H5L_info_t -> InOut a -> IO HErr_t)
@@ -167,7 +167,7 @@ with_iterate_t :: (Group -> BS.ByteString -> LinkInfo -> IO HErr_t)
      -> IO HErr_t
 with_iterate_t op f = do
     exception <- newIORef Nothing :: IO (IORef (Maybe SomeException))
-    
+
     op <- wrap_H5L_iterate_t $ \grp name (In link) _opData -> do
         name <- BS.packCString name
         link <- peek link
@@ -177,28 +177,28 @@ with_iterate_t op f = do
                 writeIORef exception (Just exc)
                 return maxBound
             Right x -> return x
-    
+
     result <- f op (InOut nullPtr) `finally` freeHaskellFunPtr op
-    
+
     if result == maxBound
         then do
             exception <- readIORef exception
             maybe (return result) throwIO exception
-            
+
         else return result
 
 iterateLinks :: Location t => t -> IndexType -> IterOrder -> Maybe HSize -> (Group -> BS.ByteString -> LinkInfo -> IO HErr_t) -> IO HSize
-iterateLinks loc indexType order startIndex op = 
+iterateLinks loc indexType order startIndex op =
     fmap HSize $
-        withInOut_ (maybe 0 hSize startIndex) $ \startIndex -> 
+        withInOut_ (maybe 0 hSize startIndex) $ \startIndex ->
             withErrorCheck_ $
-                with_iterate_t op $ \op opData -> 
+                with_iterate_t op $ \op opData ->
                     h5l_iterate (hid loc) (indexTypeCode indexType) (iterOrderCode order) startIndex op opData
 
 iterateLinksByName :: Location t => t -> BS.ByteString -> IndexType -> IterOrder -> Maybe HSize -> Maybe LAPL -> (Group -> BS.ByteString -> LinkInfo -> IO HErr_t) -> IO HSize
 iterateLinksByName loc groupName indexType order startIndex lapl op = do
     fmap HSize $
-        withInOut_ (maybe 0 hSize startIndex) $ \startIndex -> 
+        withInOut_ (maybe 0 hSize startIndex) $ \startIndex ->
             withErrorCheck_ $
                 with_iterate_t op $ \op opData ->
                     BS.useAsCString groupName $ \groupName ->

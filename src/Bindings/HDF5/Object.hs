@@ -3,20 +3,20 @@ module Bindings.HDF5.Object
     ( ObjectId
     , Object(..)
     , ObjectType(..)
-    
+
     , objectTypeOf
     , objectTypeOf1
-    
+
     , uncheckedCastObject
     , castObject
-    
+
     , openObject
     , getObjectType
-    
+
     , linkObject
     , closeObject
     , copyObject
-    
+
     , doesObjectExist
     ) where
 
@@ -67,7 +67,7 @@ castObject = castTo staticObjectType
                 else Nothing
 
 openObject :: Location loc => loc -> BS.ByteString -> Maybe LAPL -> IO ObjectId
-openObject loc name lapl = 
+openObject loc name lapl =
     fmap ObjectId $
         BS.useAsCString name $ \name ->
             withErrorCheck $
@@ -80,7 +80,7 @@ data ObjectType
     | DataspaceObj
     | DatasetObj
     | AttrObj
-    deriving (Eq, Ord, Read, Show, Enum, Bounded) 
+    deriving (Eq, Ord, Read, Show, Enum, Bounded)
 
 instance HDFResultType H5I_type_t where
     isError (H5I_type_t c) = c < 0
@@ -106,7 +106,7 @@ getObjectType obj =
             h5i_get_type (hid obj)
 
 linkObject :: (Object obj, Location loc) => obj -> loc -> BS.ByteString -> Maybe LCPL -> Maybe LAPL -> IO ()
-linkObject obj loc name lcpl lapl = 
+linkObject obj loc name lcpl lapl =
     withErrorCheck_ $
         BS.useAsCString name $ \name ->
             h5o_link (hid obj) (hid loc) name (maybe h5p_DEFAULT hid lcpl) (maybe h5p_DEFAULT hid lapl)
@@ -128,5 +128,5 @@ copyObject src srcName dst dstName ocpypl lcpl =
 doesObjectExist :: Location loc => loc -> BS.ByteString -> Maybe LAPL -> IO Bool
 doesObjectExist loc name lapl =
     htriToBool $
-        BS.useAsCString name $ \name -> 
+        BS.useAsCString name $ \name ->
             h5o_exists_by_name (hid loc) name (maybe h5p_DEFAULT hid lapl)

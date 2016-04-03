@@ -1,7 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Bindings.HDF5.PropertyList.FMPL
     ( module Bindings.HDF5.PropertyList
-    
+
     , FMPL
     , FileMountPropertyList(..)
     ) where

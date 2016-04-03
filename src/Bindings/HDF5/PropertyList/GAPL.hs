@@ -1,10 +1,10 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Bindings.HDF5.PropertyList.GAPL
     ( module Bindings.HDF5.PropertyList.LAPL
-    
+
     , GAPL
     , GroupAccessPropertyList(..)
-    
+
     ) where
 
 import Bindings.HDF5.Core

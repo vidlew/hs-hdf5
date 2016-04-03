@@ -47,7 +47,7 @@ newtype HAddr = HAddr (HAddr_t)
 hAddr (HAddr a) = a
 
 instance Read HAddr where
-    readsPrec p s = 
+    readsPrec p s =
         [ (HAddr (HAddr_t n), rest)
         | (n, rest) <- readsPrec p s
         ]

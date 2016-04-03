@@ -8,7 +8,7 @@ module Bindings.HDF5
     , IndexType(..)
     , IterOrder(..)
     , IH_Info(..)
-        
+
     , module Bindings.HDF5.Dataset
     , module Bindings.HDF5.Dataspace
     , module Bindings.HDF5.Datatype
@@ -17,7 +17,7 @@ module Bindings.HDF5
     , module Bindings.HDF5.Link
     , module Bindings.HDF5.Object
     , module Bindings.HDF5.PropertyList
-    
+
     , module Bindings.HDF5.PropertyList.DAPL
     , module Bindings.HDF5.PropertyList.DCPL
     , module Bindings.HDF5.PropertyList.DXPL

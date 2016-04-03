@@ -5,24 +5,24 @@ module Bindings.HDF5.Dataset
     , createAnonymousDataset
     , openDataset
     , closeDataset
-    
+
     , getDatasetSpace
     , SpaceStatus(..)
     , getDatasetSpaceStatus
     , getDatasetType
-    
+
     , getDatasetCreatePList
     , getDatasetAccessPList
-    
+
     , getDatasetStorageSize
     , getDatasetOffset
-    
+
     , readDataset
     , readDatasetInto
     , writeDataset
-    
+
     , setDatasetExtent
-    
+
     , fillSelection
     ) where
 
@@ -71,7 +71,7 @@ openDataset :: Location loc
 openDataset loc_id name dapl_id =
     fmap Dataset $
         withErrorCheck $
-            BS.useAsCString name $ \name -> 
+            BS.useAsCString name $ \name ->
                 h5d_open2 (hid loc_id) name (maybe h5p_DEFAULT hid dapl_id)
 
 closeDataset :: Dataset -> IO ()
@@ -79,7 +79,7 @@ closeDataset (Dataset dset_id) =
     withErrorCheck_ (h5d_close dset_id)
 
 getDatasetSpace :: Dataset -> IO Dataspace
-getDatasetSpace (Dataset dset_id) = 
+getDatasetSpace (Dataset dset_id) =
     fmap uncheckedFromHId $
         withErrorCheck (h5d_get_space dset_id)
 
@@ -99,7 +99,7 @@ spaceStatusFromCode c
 getDatasetSpaceStatus :: Dataset -> IO SpaceStatus
 getDatasetSpaceStatus (Dataset dset_id) =
     fmap spaceStatusFromCode $
-        withOut_ $ \status -> 
+        withOut_ $ \status ->
             withErrorCheck (h5d_get_space_status dset_id status)
 
 getDatasetType :: Dataset -> IO Datatype
@@ -136,7 +136,7 @@ readDataset :: NativeType t =>
 readDataset dset@(Dataset dset_id) file_space_id plist_id = do
     effectiveSelection <- maybe (getDatasetSpace dset) return file_space_id
     n <- getSimpleDataspaceExtentNPoints effectiveSelection
-    
+
     withOutVector_ (fromIntegral n) $ \buf ->
         withErrorCheck_ $
             h5d_read dset_id (hdfTypeOf1 buf) h5s_ALL (maybe h5s_ALL hid file_space_id) (maybe h5p_DEFAULT hid plist_id) buf
@@ -146,7 +146,7 @@ readDatasetInto :: NativeType t =>
 readDatasetInto dset@(Dataset dset_id) mem_space_id file_space_id plist_id vec = do
     effectiveSelection <- maybe (getDatasetSpace dset) return mem_space_id
     n <- getSimpleDataspaceExtentNPoints effectiveSelection
-    
+
     withOutMVector vec $ \vecSz buf ->
         if fromIntegral n > vecSz
             then fail "readDatasetInto: output vector is too small to contain selection"
@@ -163,7 +163,7 @@ writeDataset (Dataset dset_id) mem_space_id file_space_id plist_id buf =
 -- foreign import ccall "wrapper" wrap_iterate_op
 --     :: (InOut a -> HId_t -> CUInt -> InArray HSize_t -> InOut b -> IO HErr_t)
 --     -> IO (H5D_operator_t a b)
--- 
+--
 -- TODO: figure out a good way to properly encapsulate the buffer so that
 -- out-of-bounds accesses are impossible.  Probably use a storable vector
 -- and check the bounds against the dataspace.
@@ -175,21 +175,21 @@ writeDataset (Dataset dset_id) mem_space_id file_space_id plist_id buf =
 --     -- In order to marshall Haskell exceptions through the iterate operations,
 --     -- we use 'maxBound' as a "something might have happened" return value
 --     -- and pass a description of what that was via these IORefs.
---     -- 
+--     --
 --     -- The assertion mentioned here is that the 'type_id' argument to h5d_iterate
 --     -- is passed unchanged to the operator.  If that doesn't hold, then this
 --     -- function will need a more complicated type.
 --     assertionFailed <- newIORef False
 --     exception       <- newIORef Nothing :: IO (IORef (Maybe SomeException))
---     
+--
 --     let bufType = hdfTypeOf1 buf
---     
+--
 --     op <- wrap_iterate_op $ \elem type_id ndim (InArray point) _operator_data -> do
 --         point <- peekArray (fromIntegral ndim) point
 --         if type_id == bufType
 --             then do
 --                 result <- try (op elem (fmap HSize point))
---                 case result of 
+--                 case result of
 --                     Left exc -> do
 --                         writeIORef exception (Just exc)
 --                         return maxBound
@@ -197,17 +197,17 @@ writeDataset (Dataset dset_id) mem_space_id file_space_id plist_id buf =
 --             else do
 --                 writeIORef assertionFailed True
 --                 return maxBound
---     
+--
 --     result <- withErrorCheck_
 --         (h5d_iterate buf bufType (hid space_id) op (InOut nullPtr)
 --         `finally` freeHaskellFunPtr op)
---     
+--
 --     when (result == maxBound) $ do
 --         assertionFailed <- readIORef assertionFailed
 --         when assertionFailed (throwIO (AssertionFailed "iterateDatasetSelection: operator called with different type_id than h5d_iterate was called with!"))
 --         exception <- readIORef exception
 --         maybe (return result) throwIO exception
---         
+--
 --     return result
 
 setDatasetExtent :: Dataset -> [HSize] -> IO ()

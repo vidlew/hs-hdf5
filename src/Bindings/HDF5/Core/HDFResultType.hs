@@ -22,7 +22,7 @@ instance HDFResultType HAddr_t where
 
 instance HDFResultType H5T_order_t where
     isError (H5T_order_t c) = c < 0
-    
+
 instance HDFResultType H5T_pad_t where
     isError (H5T_pad_t c) = c < 0
 

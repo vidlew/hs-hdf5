@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable, FlexibleInstances #-}
-module Bindings.HDF5.ErrorCodes 
+module Bindings.HDF5.ErrorCodes
     ( MajorErrCode(..), majorErrorCode, majorErrorFromCode
     , MinorErrCode(..), minorErrorCode, minorErrorFromCode
 
@@ -69,7 +69,7 @@ data MajorErrCode
     | FSpace
     -- |Object cache
     | Cache
-    
+
     -- |Unrecognized major error code
     | UnknownMajor HId_t
     deriving (Eq, Ord, Show, Typeable)
@@ -120,7 +120,7 @@ majorErrorFromCode code = case lookup code rawMajorErrCodesInv of
 instance Storable (Maybe MajorErrCode) where
     sizeOf    _ = sizeOf    (undefined :: HId_t)
     alignment _ = alignment (undefined :: HId_t)
-    
+
     peek = fmap majorErrorFromCode . peek . castPtr
     poke p err = case majorErrorCode err of
         Nothing -> fail ("Unknown major error code: " ++ show err)
@@ -487,7 +487,7 @@ minorErrorFromCode code = case lookup code rawMinorErrCodesInv of
 instance Storable (Maybe MinorErrCode) where
     sizeOf    _ = sizeOf    (undefined :: HId_t)
     alignment _ = alignment (undefined :: HId_t)
-    
+
     peek = fmap minorErrorFromCode . peek . castPtr
     poke p err = case minorErrorCode err of
         Nothing -> fail ("Unknown minor error code: " ++ show err)

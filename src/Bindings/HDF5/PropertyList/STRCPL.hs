@@ -1,10 +1,10 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Bindings.HDF5.PropertyList.STRCPL
     ( module Bindings.HDF5.PropertyList
-    
+
     , STRCPL
     , StringCreationPropertyList(..)
-    
+
     ) where
 
 import Bindings.HDF5.Core

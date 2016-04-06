@@ -1,0 +1,78 @@
+Source: haskell-hdf5
+Maintainer: Picca Frédéric-Emmanuel <picca@debian.org>
+Priority: optional
+Section: haskell
+Build-Depends: debhelper (>= 7.0)
+               , haskell-devscripts (>= 0.8)
+               , cdbs
+               , ghc
+               , ghc-prof
+               , libghc-bindings-hdf5-dev
+               , libghc-bindings-hdf5-prof
+               , libghc-tagged-dev
+               , libghc-tagged-prof
+               , libghc-vector-dev
+               , libghc-vector-prof
+Build-Depends-Indep: ghc-doc
+                     , libghc-bindings-hdf5-doc
+                     , libghc-tagged-doc
+                     , libghc-vector-doc
+
+Package: libghc-hdf5-dev
+Architecture: any
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
+         , ${misc:Depends}
+Recommends: ${haskell:Recommends}
+Suggests: ${haskell:Suggests}
+Conflicts: ${haskell:Conflicts}
+Provides: ${haskell:Provides}
+Replaces: ${haskell:Replaces}
+Description: Haskell interface to the HDF5 scientific data storage library.
+ This is a low-level but typesafe Haskell interface to the HDF5 library.  No pointers necessary.
+ .
+  Author: James Cook <mokus@deepbondi.net>
+  Upstream-Maintainer: James Cook <mokus@deepbondi.net>
+ .
+ This package provides a library for the Haskell programming language.
+ See http:///www.haskell.org/ for more information on Haskell.
+
+Package: libghc-hdf5-prof
+Architecture: any
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
+         , ${misc:Depends}
+Recommends: ${haskell:Recommends}
+Suggests: ${haskell:Suggests}
+Conflicts: ${haskell:Conflicts}
+Provides: ${haskell:Provides}
+Replaces: ${haskell:Replaces}
+Description: Haskell interface to the HDF5 scientific data storage library.
+ This is a low-level but typesafe Haskell interface to the HDF5 library.  No pointers necessary.
+ .
+  Author: James Cook <mokus@deepbondi.net>
+  Upstream-Maintainer: James Cook <mokus@deepbondi.net>
+ .
+ This package provides a library for the Haskell programming language, compiled
+ for profiling.  See http:///www.haskell.org/ for more information on Haskell.
+
+Package: libghc-hdf5-doc
+Architecture: all
+Section: doc
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
+         , ${misc:Depends}
+Recommends: ${haskell:Recommends}
+Suggests: ${haskell:Suggests}
+Conflicts: ${haskell:Conflicts}
+Provides: ${haskell:Provides}
+Replaces: ${haskell:Replaces}
+Description: Haskell interface to the HDF5 scientific data storage library.
+ This is a low-level but typesafe Haskell interface to the HDF5 library.  No pointers necessary.
+ .
+  Author: James Cook <mokus@deepbondi.net>
+  Upstream-Maintainer: James Cook <mokus@deepbondi.net>
+ .
+ This package provides the documentation for a library for the Haskell
+ programming language.
+ See http:///www.haskell.org/ for more information on Haskell.

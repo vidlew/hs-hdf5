@@ -129,6 +129,7 @@ data Scope
     | Global
     deriving (Eq, Ord, Enum, Bounded, Read, Show)
 
+scopeCode :: Scope -> H5F_scope_t
 scopeCode Local  = h5f_SCOPE_LOCAL
 scopeCode Global = h5f_SCOPE_GLOBAL
 
@@ -138,7 +139,9 @@ data CloseDegree
     | Strong
     deriving (Eq, Ord, Enum, Bounded, Read, Show)
 
+rawCloseDegreesInv :: [(H5F_close_degree_t, Maybe CloseDegree)]
 rawCloseDegreesInv = [(a,b) | (b,a) <- rawCloseDegrees]
+rawCloseDegrees :: [(Maybe CloseDegree, H5F_close_degree_t)]
 rawCloseDegrees =
     [ (Nothing,     h5f_CLOSE_DEFAULT)
     , (Just Weak,   h5f_CLOSE_WEAK)
@@ -174,15 +177,15 @@ createFile :: BS.ByteString -> [AccFlags] -> Maybe FCPL -> Maybe FAPL -> IO File
 createFile filename flags create_plist access_plist =
     fmap File $
         withErrorCheck $
-            BS.useAsCString filename $ \filename ->
-                h5f_create filename (accFlagsToInt flags) (maybe h5p_DEFAULT hid create_plist) (maybe h5p_DEFAULT hid access_plist)
+            BS.useAsCString filename $ \cfilename ->
+                h5f_create cfilename (accFlagsToInt flags) (maybe h5p_DEFAULT hid create_plist) (maybe h5p_DEFAULT hid access_plist)
 
 openFile :: BS.ByteString -> [AccFlags] -> Maybe FAPL -> IO File
 openFile filename flags access_plist =
     fmap File $
         withErrorCheck $
-            BS.useAsCString filename $ \filename ->
-                h5f_open filename (accFlagsToInt flags) (maybe h5p_DEFAULT hid access_plist)
+            BS.useAsCString filename $ \cfilename ->
+                h5f_open cfilename (accFlagsToInt flags) (maybe h5p_DEFAULT hid access_plist)
 
 reopenFile :: File -> IO File
 reopenFile (File file_id) =
@@ -202,14 +205,14 @@ closeFile (File file_id) =
 mountFile :: Location loc => loc -> BS.ByteString -> File -> Maybe FMPL -> IO ()
 mountFile loc groupname (File file_id) mount_plist =
     withErrorCheck_ $
-        BS.useAsCString groupname $ \groupname ->
-            h5f_mount (hid loc) groupname file_id (maybe h5p_DEFAULT hid mount_plist)
+        BS.useAsCString groupname $ \cgroupname ->
+            h5f_mount (hid loc) cgroupname file_id (maybe h5p_DEFAULT hid mount_plist)
 
 unmountFile :: Location loc => loc -> BS.ByteString -> IO ()
 unmountFile loc groupname =
     withErrorCheck_ $
-        BS.useAsCString groupname $ \groupname ->
-            h5f_unmount (hid loc) groupname
+        BS.useAsCString groupname $ \cgroupname ->
+            h5f_unmount (hid loc) cgroupname
 
 getFileSize :: File -> IO HSize
 getFileSize (File file_id) =

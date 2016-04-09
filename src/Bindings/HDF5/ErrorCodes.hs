@@ -74,7 +74,10 @@ data MajorErrCode
     | UnknownMajor HId_t
     deriving (Eq, Ord, Show, Typeable)
 
+rawMajorErrCodesInv :: [(HId_t, Maybe MajorErrCode)]
 rawMajorErrCodesInv = [(a,b) | (b,a) <- rawMajorErrCodes]
+
+rawMajorErrCodes :: [(Maybe MajorErrCode, HId_t)]
 rawMajorErrCodes =
     [ (Nothing,         h5e_NONE_MAJOR)
     , (Just Dataset,    h5e_DATASET)
@@ -357,7 +360,9 @@ data MinorErrCode
     | UnknownMinor HId_t
     deriving (Eq, Ord, Show, Typeable)
 
+rawMinorErrCodesInv :: [(HId_t, Maybe MinorErrCode)]
 rawMinorErrCodesInv = [(a,b) | (b,a) <- rawMinorErrCodes]
+rawMinorErrCodes :: [(Maybe MinorErrCode, HId_t)]
 rawMinorErrCodes =
     [ (Nothing,                 h5e_NONE_MINOR)
     , (Just SeekError,          h5e_SEEKERROR)

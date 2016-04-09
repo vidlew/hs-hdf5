@@ -38,3 +38,6 @@ instance HDFResultType H5_iter_order_t where
 instance HDFResultType H5I_type_t where
     isError (H5I_type_t c) = c < 0
 
+instance HDFResultType H5T_norm_t where
+    isError (H5T_norm_t c) = c < 0
+

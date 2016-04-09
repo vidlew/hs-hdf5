@@ -3,7 +3,7 @@ module Bindings.HDF5.PropertyList.DCPL
     ( module Bindings.HDF5.PropertyList.OCPL
 
     , DCPL
-    , DatasetCreationPropertyList(..)
+    , DatasetCreationPropertyList
 
     , Layout(..)
     , setLayout
@@ -85,9 +85,9 @@ layout c
     | otherwise = error ("unknown H5D_layout_t: " ++ show c)
 
 setLayout :: DatasetCreationPropertyList t => t -> Layout -> IO ()
-setLayout plist layout =
+setLayout plist l =
     withErrorCheck_ $
-        h5p_set_layout (hid plist) (layoutCode layout)
+        h5p_set_layout (hid plist) (layoutCode l)
 
 getLayout :: DatasetCreationPropertyList t => t -> IO Layout
 getLayout plist =
@@ -98,8 +98,8 @@ getLayout plist =
 setChunk :: DatasetCreationPropertyList t => t -> [HSize] -> IO ()
 setChunk plist chunkSizes =
     withErrorCheck_ $
-        withInList (map hSize chunkSizes) $ \chunkSizes ->
-            h5p_set_chunk (hid plist) n chunkSizes
+        withInList (map hSize chunkSizes) $ \cchunkSizes ->
+            h5p_set_chunk (hid plist) n cchunkSizes
     where n = genericLength chunkSizes
 
 getChunk :: DatasetCreationPropertyList t => t -> IO [HSize]
@@ -115,8 +115,8 @@ getChunk plist = do
 setExternal :: DatasetCreationPropertyList t => t -> BS.ByteString -> COff -> HSize -> IO ()
 setExternal plist name offset size =
     withErrorCheck_ $
-        BS.useAsCString name $ \name ->
-            h5p_set_external (hid plist) name offset (hSize size)
+        BS.useAsCString name $ \cname ->
+            h5p_set_external (hid plist) cname offset (hSize size)
 
 getExternalCount :: DatasetCreationPropertyList t => t -> IO CInt
 getExternalCount plist =
@@ -126,17 +126,17 @@ getExternalCount plist =
 getExternalN :: DatasetCreationPropertyList t => t -> CUInt -> CSize -> IO (BS.ByteString, COff, HSize)
 getExternalN plist idx name_size = do
     let sz = fromIntegral name_size
-    name <- mallocBytes sz
+    name1 <- mallocBytes sz
 
     (offset, size) <-
         withOut $ \offset ->
             withOut_ $ \size ->
                 withErrorCheck_ $
-                    h5p_get_external (hid plist) idx name_size (OutArray name) offset size
+                    h5p_get_external (hid plist) idx name_size (OutArray name1) offset size
     -- TODO: this will leak memory if an exception is thrown
 
-    name <- BS.unsafePackCStringLen (name, sz)
-    return (BS.takeWhile (0 /=) name, offset, HSize size)
+    name2 <- BS.unsafePackCStringLen (name1, sz)
+    return (BS.takeWhile (0 /=) name2, offset, HSize size)
 
 getExternal :: DatasetCreationPropertyList t => t -> CUInt -> IO (BS.ByteString, COff, HSize)
 getExternal plist idx = loop 255
@@ -185,8 +185,8 @@ setScaleOffset plist scale_type scale_factor =
 setFillValue :: (DatasetCreationPropertyList t, NativeType a) => t -> a -> IO ()
 setFillValue plist value =
     withErrorCheck_ $
-        withIn value $ \value ->
-            h5p_set_fill_value (hid plist) (hdfTypeOf1 value) value
+        withIn value $ \ivalue ->
+            h5p_set_fill_value (hid plist) (hdfTypeOf1 ivalue) ivalue
 
 getFillValue :: (DatasetCreationPropertyList t, NativeType a) => t -> IO a
 getFillValue plist =
@@ -265,6 +265,7 @@ fillTime c
     | c == h5d_FILL_TIME_ALLOC = Alloc
     | c == h5d_FILL_TIME_NEVER = Never
     | c == h5d_FILL_TIME_IFSET = IfSet
+    | otherwise = error "unknown h5d_FILL_TIME value"
 
 setFillTime :: DatasetCreationPropertyList t => t -> FillTime -> IO ()
 setFillTime plist fill_time =

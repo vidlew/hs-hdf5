@@ -128,18 +128,21 @@ data ByteOrder
     | Mixed
     deriving (Eq, Ord, Bounded, Enum, Read, Show)
 
+byteOrderCode :: Maybe ByteOrder -> H5T_order_t
 byteOrderCode (Just LE)     = h5t_ORDER_LE
 byteOrderCode (Just BE)     = h5t_ORDER_BE
 byteOrderCode (Just VAX)    = h5t_ORDER_VAX
 byteOrderCode (Just Mixed)  = h5t_ORDER_MIXED
 byteOrderCode Nothing       = h5t_ORDER_NONE
 
+byteOrder :: H5T_order_t -> Maybe ByteOrder
 byteOrder c
     | c == h5t_ORDER_LE     = Just LE
     | c == h5t_ORDER_BE     = Just BE
     | c == h5t_ORDER_VAX    = Just VAX
     | c == h5t_ORDER_MIXED  = Just Mixed
     | c == h5t_ORDER_NONE   = Nothing
+    | otherwise             = Nothing
 
 data Pad
     = Zero
@@ -164,9 +167,7 @@ data Normalization
     | MSBSet
     deriving (Eq, Ord, Enum, Bounded, Read, Show)
 
-instance HDFResultType H5T_norm_t where
-    isError (H5T_norm_t c) = c < 0
-
+normalization :: H5T_norm_t -> Maybe Normalization
 normalization c
     | c == h5t_NORM_IMPLIED = Just Implied
     | c == h5t_NORM_MSBSET  = Just MSBSet
@@ -192,6 +193,7 @@ data StringPad
     | StringPad_Reserved15
     deriving (Eq, Ord, Enum, Bounded, Read, Show)
 
+stringPadCode :: StringPad -> H5T_str_t
 stringPadCode NullTerm              = h5t_STR_NULLTERM
 stringPadCode NullPad               = h5t_STR_NULLPAD
 stringPadCode SpacePad              = h5t_STR_SPACEPAD
@@ -209,6 +211,7 @@ stringPadCode StringPad_Reserved13  = h5t_STR_RESERVED_13
 stringPadCode StringPad_Reserved14  = h5t_STR_RESERVED_14
 stringPadCode StringPad_Reserved15  = h5t_STR_RESERVED_15
 
+stringPadFromCode :: H5T_str_t -> StringPad
 stringPadFromCode c
     | c == h5t_STR_NULLTERM     = NullTerm
     | c == h5t_STR_NULLPAD      = NullPad

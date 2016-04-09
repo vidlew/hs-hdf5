@@ -39,8 +39,8 @@ createGroup :: Location t => t -> BS.ByteString -> Maybe LCPL -> Maybe GCPL -> M
 createGroup loc name lcpl gcpl gapl =
     fmap Group $
         withErrorCheck $
-            BS.useAsCString name $ \name ->
-                h5g_create2 (hid loc) name
+            BS.useAsCString name $ \cname ->
+                h5g_create2 (hid loc) cname
                     (maybe h5p_DEFAULT hid lcpl)
                     (maybe h5p_DEFAULT hid gcpl)
                     (maybe h5p_DEFAULT hid gapl)
@@ -55,8 +55,8 @@ openGroup :: Location t => t -> BS.ByteString -> Maybe GAPL -> IO Group
 openGroup loc name gapl =
     fmap Group $
         withErrorCheck $
-            BS.useAsCString name $ \name ->
-                h5g_open2 (hid loc) name (maybe h5p_DEFAULT hid gapl)
+            BS.useAsCString name $ \cname ->
+                h5g_open2 (hid loc) cname (maybe h5p_DEFAULT hid gapl)
 
 closeGroup :: Group -> IO ()
 closeGroup (Group grp) =
@@ -70,6 +70,7 @@ data GroupStorageType
     | UnknownStorage
     deriving (Eq, Ord, Read, Show, Enum, Bounded)
 
+groupStorageTypeFromCode :: H5G_storage_type_t -> GroupStorageType
 groupStorageTypeFromCode c
     | c == h5g_STORAGE_TYPE_COMPACT         = CompactStorage
     | c == h5g_STORAGE_TYPE_DENSE           = DenseStorage
@@ -83,6 +84,7 @@ data GroupInfo = GroupInfo
     , groupMounted      :: !Bool
     } deriving (Eq, Ord, Read, Show)
 
+readGroupInfo :: H5G_info_t -> GroupInfo
 readGroupInfo (H5G_info_t a b c d) = GroupInfo (groupStorageTypeFromCode a) (HSize b) c (hboolToBool d)
 
 getGroupInfo :: Group -> IO GroupInfo
@@ -96,6 +98,6 @@ getGroupInfoByName :: Location loc => loc -> BS.ByteString -> Maybe LAPL -> IO G
 getGroupInfoByName loc name lapl =
     fmap readGroupInfo $
         withOut_ $ \info ->
-            BS.useAsCString name $ \name ->
+            BS.useAsCString name $ \cname ->
                 withErrorCheck_ $
-                    h5g_get_info_by_name (hid loc) name info (maybe h5p_DEFAULT hid lapl)
+                    h5g_get_info_by_name (hid loc) cname info (maybe h5p_DEFAULT hid lapl)

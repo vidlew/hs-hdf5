@@ -28,3 +28,9 @@ instance HDFResultType H5T_pad_t where
 
 instance HDFResultType H5T_str_t where
     isError (H5T_str_t c) = c < 0
+
+instance HDFResultType H5_index_t where
+    isError (H5_index_t c) = c < 0
+
+instance HDFResultType H5_iter_order_t where
+    isError (H5_iter_order_t c) = c < 0

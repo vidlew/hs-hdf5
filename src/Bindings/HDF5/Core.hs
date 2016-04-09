@@ -16,6 +16,7 @@ import Foreign.Storable
 newtype HSize = HSize HSize_t
     deriving (Eq, Ord, Enum, Bounded, Num, Real, Integral, Bits, Storable)
 
+hSize :: HSize -> HSize_t
 hSize (HSize s) = s
 
 instance Read HSize where
@@ -30,6 +31,7 @@ instance Show HSize where
 newtype HSSize = HSSize HSSize_t
     deriving (Eq, Ord, Enum, Bounded, Num, Real, Integral, Bits, Storable)
 
+hSSize :: HSSize -> HSSize_t
 hSSize (HSSize s) = s
 
 instance Read HSSize where
@@ -44,6 +46,7 @@ instance Show HSSize where
 newtype HAddr = HAddr (HAddr_t)
     deriving (Eq, Ord, Enum, Bounded, Num, Real, Integral, Bits, Storable)
 
+hAddr :: HAddr -> HAddr_t
 hAddr (HAddr a) = a
 
 instance Read HAddr where
@@ -65,9 +68,6 @@ data IndexType
     | ByCreationOrder
     deriving (Eq, Ord, Enum, Bounded, Read, Show)
 
-instance HDFResultType H5_index_t where
-    isError (H5_index_t c) = c < 0
-
 indexTypeCode :: IndexType -> H5_index_t
 indexTypeCode ByName            = h5_INDEX_NAME
 indexTypeCode ByCreationOrder   = h5_INDEX_CRT_ORDER
@@ -77,9 +77,6 @@ data IterOrder
     | Decreasing
     | Native
     deriving (Eq, Ord, Enum, Bounded, Read, Show)
-
-instance HDFResultType H5_iter_order_t where
-    isError (H5_iter_order_t c) = c < 0
 
 iterOrderCode :: IterOrder -> H5_iter_order_t
 iterOrderCode Increasing = h5_ITER_INC

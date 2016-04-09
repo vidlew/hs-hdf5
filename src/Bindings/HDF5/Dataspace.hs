@@ -166,7 +166,7 @@ getSimpleDataspaceExtent space@(Dataspace space_id) = do
                     h5s_get_simple_extent_dims space_id dims maxDims
 
     assert (n==n') $ return
-        ( (map HSize dims)
+        ( map HSize dims
         , [ if d == h5s_UNLIMITED then Nothing else Just (HSize d) | d <- maxDims]
         )
 

@@ -3,7 +3,7 @@ module Bindings.HDF5.PropertyList.TCPL
     ( module Bindings.HDF5.PropertyList.OCPL
 
     , TCPL
-    , DatatypeCreationPropertyList(..)
+    , DatatypeCreationPropertyList
 
     ) where
 

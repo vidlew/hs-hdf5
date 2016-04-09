@@ -3,7 +3,7 @@ module Bindings.HDF5.PropertyList.LCPL
     ( module Bindings.HDF5.PropertyList.STRCPL
 
     , LCPL
-    , LinkCreationPropertyList(..)
+    , LinkCreationPropertyList
 
     ) where
 

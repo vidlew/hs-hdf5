@@ -3,7 +3,7 @@ module Bindings.HDF5.PropertyList.LAPL
     ( module Bindings.HDF5.PropertyList
 
     , LAPL
-    , LinkAccessPropertyList(..)
+    , LinkAccessPropertyList
 
     , setNLinks
     , getNLinks
@@ -49,8 +49,8 @@ getNLinks lapl =
 setELinkPrefix :: LinkAccessPropertyList lapl => lapl -> BS.ByteString -> IO ()
 setELinkPrefix lapl prefix =
     withErrorCheck_ $
-        BS.useAsCString prefix $ \prefix -> do
-            h5p_set_elink_prefix (hid lapl) prefix
+        BS.useAsCString prefix $ \cprefix -> do
+            h5p_set_elink_prefix (hid lapl) cprefix
 
 getELinkPrefix :: LinkAccessPropertyList lapl => lapl -> IO BS.ByteString
 getELinkPrefix lapl = do

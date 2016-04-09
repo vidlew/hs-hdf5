@@ -3,7 +3,7 @@ module Bindings.HDF5.PropertyList.FCPL
     ( module Bindings.HDF5.PropertyList.GCPL
 
     , FCPL
-    , FileCreationPropertyList(..)
+    , FileCreationPropertyList
 
     , setUserblock
     , getUserblock

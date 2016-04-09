@@ -3,7 +3,7 @@ module Bindings.HDF5.PropertyList.GAPL
     ( module Bindings.HDF5.PropertyList.LAPL
 
     , GAPL
-    , GroupAccessPropertyList(..)
+    , GroupAccessPropertyList
 
     ) where
 

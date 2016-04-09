@@ -3,7 +3,7 @@ module Bindings.HDF5.PropertyList.GCPL
     ( module Bindings.HDF5.PropertyList.OCPL
 
     , GCPL
-    , GroupCreationPropertyList(..)
+    , GroupCreationPropertyList
 
     , setLocalHeapSizeHint
     , getLocalHeapSizeHint
@@ -75,9 +75,11 @@ data CreationOrder
     | Indexed
     deriving (Eq, Ord, Bounded, Enum, Read, Show)
 
+creationOrderCode :: Num a => CreationOrder -> a
 creationOrderCode Tracked = h5p_CRT_ORDER_TRACKED
 creationOrderCode Indexed = h5p_CRT_ORDER_INDEXED
 
+creationOrder :: (Eq a, Num a, Show a) => a -> CreationOrder
 creationOrder c
     | c == h5p_CRT_ORDER_TRACKED    = Tracked
     | c == h5p_CRT_ORDER_INDEXED    = Indexed

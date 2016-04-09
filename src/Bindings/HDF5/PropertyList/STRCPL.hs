@@ -3,7 +3,7 @@ module Bindings.HDF5.PropertyList.STRCPL
     ( module Bindings.HDF5.PropertyList
 
     , STRCPL
-    , StringCreationPropertyList(..)
+    , StringCreationPropertyList
 
     ) where
 

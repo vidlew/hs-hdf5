@@ -3,7 +3,7 @@ module Bindings.HDF5.PropertyList.OCPYPL
     ( module Bindings.HDF5.PropertyList
 
     , OCPYPL
-    , ObjectCopyPropertyList(..)
+    , ObjectCopyPropertyList
     ) where
 
 import Bindings.HDF5.Core

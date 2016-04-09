@@ -3,7 +3,7 @@ module Bindings.HDF5.PropertyList.DXPL
     ( module Bindings.HDF5.PropertyList
 
     , DXPL
-    , DatasetTransferPropertyList(..)
+    , DatasetTransferPropertyList
 
     ) where
 

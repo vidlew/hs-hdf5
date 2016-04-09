@@ -3,7 +3,7 @@ module Bindings.HDF5.PropertyList.FMPL
     ( module Bindings.HDF5.PropertyList
 
     , FMPL
-    , FileMountPropertyList(..)
+    , FileMountPropertyList
     ) where
 
 import Bindings.HDF5.Core

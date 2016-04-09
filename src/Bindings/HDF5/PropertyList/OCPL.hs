@@ -3,7 +3,7 @@ module Bindings.HDF5.PropertyList.OCPL
     ( module Bindings.HDF5.PropertyList
 
     , OCPL
-    , ObjectCreationPropertyList(..)
+    , ObjectCreationPropertyList
 
     , setAttrPhaseChange
     , getAttrPhaseChange
@@ -84,8 +84,8 @@ getObjTrackTimes plist =
 modifyFilter :: ObjectCreationPropertyList t => t -> H5Z_filter_t -> Bool -> SV.Vector CUInt -> IO ()
 modifyFilter plist filt optional cd_values =
     withErrorCheck_ $
-        withInVector cd_values $ \cd_values ->
-            h5p_modify_filter (hid plist) filt flags n_elmts cd_values
+        withInVector cd_values $ \ccd_values ->
+            h5p_modify_filter (hid plist) filt flags n_elmts ccd_values
     where
         flags
             | optional  = h5z_FLAG_OPTIONAL
@@ -95,8 +95,8 @@ modifyFilter plist filt optional cd_values =
 setFilter :: ObjectCreationPropertyList t => t -> H5Z_filter_t -> Bool -> SV.Vector CUInt -> IO ()
 setFilter plist filt optional cd_values =
     withErrorCheck_ $
-        withInVector cd_values $ \cd_values ->
-            h5p_set_filter (hid plist) filt flags n_elmts cd_values
+        withInVector cd_values $ \ccd_values ->
+            h5p_set_filter (hid plist) filt flags n_elmts ccd_values
     where
         flags
             | optional  = h5z_FLAG_OPTIONAL

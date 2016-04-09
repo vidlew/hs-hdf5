@@ -56,8 +56,8 @@ createDataset :: Location loc
 createDataset loc_id name type_id space_id lcpl_id dcpl_id dapl_id =
     fmap Dataset $
         withErrorCheck $
-            BS.useAsCString name $ \name ->
-                h5d_create2 (hid loc_id) name (hid type_id) (hid space_id) (maybe h5p_DEFAULT hid lcpl_id) (maybe h5p_DEFAULT hid dcpl_id) (maybe h5p_DEFAULT hid dapl_id)
+            BS.useAsCString name $ \cname ->
+                h5d_create2 (hid loc_id) cname (hid type_id) (hid space_id) (maybe h5p_DEFAULT hid lcpl_id) (maybe h5p_DEFAULT hid dcpl_id) (maybe h5p_DEFAULT hid dapl_id)
 
 createAnonymousDataset :: Location loc
     => loc -> Datatype -> Dataspace -> Maybe DCPL -> Maybe DAPL -> IO Dataset
@@ -71,8 +71,8 @@ openDataset :: Location loc
 openDataset loc_id name dapl_id =
     fmap Dataset $
         withErrorCheck $
-            BS.useAsCString name $ \name ->
-                h5d_open2 (hid loc_id) name (maybe h5p_DEFAULT hid dapl_id)
+            BS.useAsCString name $ \cname ->
+                h5d_open2 (hid loc_id) cname (maybe h5p_DEFAULT hid dapl_id)
 
 closeDataset :: Dataset -> IO ()
 closeDataset (Dataset dset_id) =
@@ -157,8 +157,8 @@ writeDataset :: NativeType t =>
     Dataset -> Maybe Dataspace -> Maybe Dataspace -> Maybe DXPL -> SV.Vector t -> IO ()
 writeDataset (Dataset dset_id) mem_space_id file_space_id plist_id buf =
     withErrorCheck_ $
-        withInVector buf $ \buf ->
-            h5d_write dset_id (hdfTypeOf1 buf) (maybe h5s_ALL hid mem_space_id) (maybe h5s_ALL hid file_space_id) (maybe h5p_DEFAULT hid plist_id) buf
+        withInVector buf $ \ibuf ->
+            h5d_write dset_id (hdfTypeOf1 buf) (maybe h5s_ALL hid mem_space_id) (maybe h5s_ALL hid file_space_id) (maybe h5p_DEFAULT hid plist_id) ibuf
 
 -- foreign import ccall "wrapper" wrap_iterate_op
 --     :: (InOut a -> HId_t -> CUInt -> InArray HSize_t -> InOut b -> IO HErr_t)
@@ -213,13 +213,13 @@ writeDataset (Dataset dset_id) mem_space_id file_space_id plist_id buf =
 setDatasetExtent :: Dataset -> [HSize] -> IO ()
 setDatasetExtent (Dataset dset_id) sizes =
     withErrorCheck_ $
-        withInList [sz | HSize sz <- sizes] $ \sizes ->
-            h5d_set_extent dset_id sizes
+        withInList [sz | HSize sz <- sizes] $ \isizes ->
+            h5d_set_extent dset_id isizes
 
 -- Fill part of a vector with a value, using the geometry and selection of the given data space
 fillSelection :: (NativeType a, NativeType b) => a -> SV.MVector RealWorld b -> Dataspace -> IO ()
 fillSelection fill buf space =
     withErrorCheck_ $
-        withIn fill $ \fill ->
-            SV.M.unsafeWith buf $ \buf ->
-                h5d_fill fill (hdfTypeOf1 fill) (InOutArray buf) (hdfTypeOf1 buf) (hid space)
+        withIn fill $ \ifill ->
+            SV.M.unsafeWith buf $ \pbuf ->
+                h5d_fill ifill (hdfTypeOf1 ifill) (InOutArray pbuf) (hdfTypeOf1 buf) (hid space)

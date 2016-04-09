@@ -31,7 +31,7 @@ setChunkCache dapl rdccNSlots rdccNBytes rddcW0 =
         h5p_set_chunk_cache (hid dapl) rdccNSlots rdccNBytes rddcW0
 
 getChunkCache :: DatasetAccessPropertyList dapl => dapl -> IO (CSize, CSize, CDouble)
-getChunkCache dapl = do
+getChunkCache dapl =
     fmap (\(a,(b,c)) -> (a,b,c)) $
         withOut $ \rdccNSlots ->
             withOut $ \rdccNBytes ->

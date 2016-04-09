@@ -49,11 +49,11 @@ getNLinks lapl =
 setELinkPrefix :: LinkAccessPropertyList lapl => lapl -> BS.ByteString -> IO ()
 setELinkPrefix lapl prefix =
     withErrorCheck_ $
-        BS.useAsCString prefix $ \cprefix -> do
+        BS.useAsCString prefix $ \cprefix ->
             h5p_set_elink_prefix (hid lapl) cprefix
 
 getELinkPrefix :: LinkAccessPropertyList lapl => lapl -> IO BS.ByteString
-getELinkPrefix lapl = do
+getELinkPrefix lapl =
     withOutByteString $ \buf bufSz ->
         withErrorWhen (< 0) $
             h5p_get_elink_prefix (hid lapl) buf bufSz

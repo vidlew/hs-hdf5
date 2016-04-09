@@ -4,7 +4,7 @@ module Bindings.HDF5
     , HAddr
     , HSize
     , HSSize
-    , Location(..)
+    , Location
     , IndexType(..)
     , IterOrder(..)
     , IH_Info(..)

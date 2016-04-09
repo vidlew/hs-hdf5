@@ -20,6 +20,8 @@ module Bindings.HDF5.Object
     , doesObjectExist
     ) where
 
+import Data.Maybe
+
 import Bindings.HDF5.Core
 import Bindings.HDF5.Error
 import Bindings.HDF5.PropertyList.LAPL
@@ -91,10 +93,11 @@ objectTypeCode DatasetObj   = h5i_DATASET
 objectTypeCode AttrObj      = h5i_ATTR
 
 objectTypeFromCode :: H5I_type_t -> ObjectType
-objectTypeFromCode c = case lookup c codes of
-    Just objType -> objType
-    Nothing      -> error ("Unknown object type code: " ++ show c)
-    where codes = [ (objectTypeCode x, x) | x <- [minBound .. maxBound]]
+objectTypeFromCode c =
+    fromMaybe (error ("Unknown object type code: " ++ show c))
+                  (lookup c codes)
+        where
+          codes = [ (objectTypeCode x, x) | x <- [minBound .. maxBound]]
 
 getObjectType :: Object obj => obj -> IO ObjectType
 getObjectType obj =

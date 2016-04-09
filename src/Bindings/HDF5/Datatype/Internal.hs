@@ -1,10 +1,15 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE TemplateHaskell #-}
 module Bindings.HDF5.Datatype.Internal where
+
+import Data.Int
+import Data.Word
+import Foreign.C.Types
 
 import Bindings.HDF5.Core
 import Bindings.HDF5.Object
+import Bindings.HDF5.Raw
 import Bindings.HDF5.Raw.H5I
-import Bindings.HDF5.Raw.H5T
 import Data.Tagged
 import Foreign.Storable
 
@@ -16,6 +21,135 @@ instance Object Datatype where
 
 class Storable t => NativeType t where
     nativeTypeId :: Tagged t Datatype
+
+-- nativeLdouble        = Datatype h5t_NATIVE_LDOUBLE
+-- nativeB8             = Datatype h5t_NATIVE_B8
+-- nativeB16            = Datatype h5t_NATIVE_B16
+-- nativeB32            = Datatype h5t_NATIVE_B32
+-- nativeB64            = Datatype h5t_NATIVE_B64
+-- nativeOpaque         = Datatype h5t_NATIVE_OPAQUE
+-- nativeIntLeast8      = Datatype h5t_NATIVE_INT_LEAST8
+-- nativeUintLeast8     = Datatype h5t_NATIVE_UINT_LEAST8
+-- nativeIntFast8       = Datatype h5t_NATIVE_INT_FAST8
+-- nativeUintFast8      = Datatype h5t_NATIVE_UINT_FAST8
+-- nativeIntLeast16     = Datatype h5t_NATIVE_INT_LEAST16
+-- nativeUintLeast16    = Datatype h5t_NATIVE_UINT_LEAST16
+-- nativeIntFast16      = Datatype h5t_NATIVE_INT_FAST16
+-- nativeUintFast16     = Datatype h5t_NATIVE_UINT_FAST16
+-- nativeIntLeast32     = Datatype h5t_NATIVE_INT_LEAST32
+-- nativeUintLeast32    = Datatype h5t_NATIVE_UINT_LEAST32
+-- nativeIntFast32      = Datatype h5t_NATIVE_INT_FAST32
+-- nativeUintFast32     = Datatype h5t_NATIVE_UINT_FAST32
+-- nativeIntLeast64     = Datatype h5t_NATIVE_INT_LEAST64
+-- nativeUintLeast64    = Datatype h5t_NATIVE_UINT_LEAST64
+-- nativeIntFast64      = Datatype h5t_NATIVE_INT_FAST64
+-- nativeUintFast64     = Datatype h5t_NATIVE_UINT_FAST64
+
+instance NativeType CChar where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_CHAR)
+
+instance NativeType CSChar where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_SCHAR)
+
+instance NativeType CUChar where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_UCHAR)
+
+instance NativeType CShort where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_SHORT)
+
+instance NativeType CUShort where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_USHORT)
+
+instance NativeType CInt where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_INT)
+
+instance NativeType CUInt where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_UINT)
+
+instance NativeType CLong where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_LONG)
+
+instance NativeType CULong where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_ULONG)
+
+instance NativeType CLLong where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_LLONG)
+
+instance NativeType CULLong where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_ULLONG)
+
+instance NativeType CFloat where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_FLOAT)
+
+instance NativeType CDouble where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_DOUBLE)
+
+instance NativeType HAddr where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_HADDR)
+
+instance NativeType HSize where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_HSIZE)
+
+instance NativeType HSSize where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_HSSIZE)
+
+instance NativeType HErr_t where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_HERR)
+
+instance NativeType HBool_t where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_HBOOL)
+
+instance NativeType Int8 where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_INT8)
+
+instance NativeType Int16 where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_INT16)
+
+instance NativeType Int32 where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_INT32)
+
+instance NativeType Int64 where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_INT64)
+
+instance NativeType Word8 where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_UINT8)
+
+instance NativeType Word16 where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_UINT16)
+
+instance NativeType Word32 where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_UINT32)
+
+instance NativeType Word64 where
+    nativeTypeId = Tagged (Datatype h5t_NATIVE_UINT64)
+
+if  isIEEE (0 :: Float)
+    && floatRadix  (0 :: Float) == 2
+    && floatDigits (0 :: Float) == 24
+    && floatRange  (0 :: Float) == (-125,128)
+    then [d| instance NativeType Float where nativeTypeId = Tagged (Datatype h5t_NATIVE_FLOAT) |]
+    else [d| |]
+
+if  isIEEE (0 :: Double)
+    && floatRadix  (0 :: Double) == 2
+    && floatDigits (0 :: Double) == 53
+    && floatRange  (0 :: Double) == (-1021,1024)
+    then [d| instance NativeType Double where nativeTypeId = Tagged (Datatype h5t_NATIVE_DOUBLE) |]
+    else [d| |]
+
+case sizeOf (0 :: Int) of
+    1   -> [d| instance NativeType Int where nativeTypeId = Tagged (Datatype h5t_NATIVE_INT8) |]
+    2   -> [d| instance NativeType Int where nativeTypeId = Tagged (Datatype h5t_NATIVE_INT16) |]
+    4   -> [d| instance NativeType Int where nativeTypeId = Tagged (Datatype h5t_NATIVE_INT32) |]
+    8   -> [d| instance NativeType Int where nativeTypeId = Tagged (Datatype h5t_NATIVE_INT64) |]
+    _   -> [d| |]
+
+case sizeOf (0 :: Word) of
+    1   -> [d| instance NativeType Word where nativeTypeId = Tagged (Datatype h5t_NATIVE_UINT8) |]
+    2   -> [d| instance NativeType Word where nativeTypeId = Tagged (Datatype h5t_NATIVE_UINT16) |]
+    4   -> [d| instance NativeType Word where nativeTypeId = Tagged (Datatype h5t_NATIVE_UINT32) |]
+    8   -> [d| instance NativeType Word where nativeTypeId = Tagged (Datatype h5t_NATIVE_UINT64) |]
+    _   -> [d| |]
 
 nativeTypeOf :: NativeType t => t -> Datatype
 nativeTypeOf it = untagAs it nativeTypeId

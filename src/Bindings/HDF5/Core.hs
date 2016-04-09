@@ -43,7 +43,7 @@ instance Read HSSize where
 instance Show HSSize where
     showsPrec p (HSSize (HSSize_t n)) = showsPrec p n
 
-newtype HAddr = HAddr (HAddr_t)
+newtype HAddr = HAddr HAddr_t
     deriving (Eq, Ord, Enum, Bounded, Num, Real, Integral, Bits, Storable)
 
 hAddr :: HAddr -> HAddr_t

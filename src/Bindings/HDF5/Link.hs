@@ -44,58 +44,58 @@ import Foreign.Ptr.Conventions
 createHardLink :: (Location src, Location dst) => src -> BS.ByteString -> dst -> BS.ByteString -> Maybe LCPL -> Maybe LAPL -> IO ()
 createHardLink src srcName dst dstName lcpl lapl =
     withErrorCheck_ $
-        BS.useAsCString srcName $ \srcName ->
-            BS.useAsCString dstName $ \dstName ->
-                h5l_create_hard (hid src) srcName (hid dst) dstName
+        BS.useAsCString srcName $ \csrcName ->
+            BS.useAsCString dstName $ \cdstName ->
+                h5l_create_hard (hid src) csrcName (hid dst) cdstName
                     (maybe h5p_DEFAULT hid lcpl)
                     (maybe h5p_DEFAULT hid lapl)
 
 createSoftLink :: Location dst => BS.ByteString -> dst -> BS.ByteString -> Maybe LCPL -> Maybe LAPL -> IO ()
 createSoftLink srcName dst dstName lcpl lapl =
     withErrorCheck_ $
-        BS.useAsCString srcName $ \srcName ->
-            BS.useAsCString dstName $ \dstName ->
-                h5l_create_soft srcName (hid dst) dstName
+        BS.useAsCString srcName $ \csrcName ->
+            BS.useAsCString dstName $ \cdstName ->
+                h5l_create_soft csrcName (hid dst) cdstName
                     (maybe h5p_DEFAULT hid lcpl)
                     (maybe h5p_DEFAULT hid lapl)
 
 createExternalLink :: Location loc => BS.ByteString -> BS.ByteString -> loc -> BS.ByteString -> Maybe LCPL -> Maybe LAPL -> IO ()
 createExternalLink file obj loc name lcpl lapl =
     withErrorCheck_ $
-        BS.useAsCString file $ \file ->
-            BS.useAsCString obj $ \obj ->
-                BS.useAsCString name $ \name ->
-                    h5l_create_external file obj (hid loc) name (maybe h5p_DEFAULT hid lcpl) (maybe h5p_DEFAULT hid lapl)
+        BS.useAsCString file $ \cfile ->
+            BS.useAsCString obj $ \cobj ->
+                BS.useAsCString name $ \cname ->
+                    h5l_create_external cfile cobj (hid loc) cname (maybe h5p_DEFAULT hid lcpl) (maybe h5p_DEFAULT hid lapl)
 
 doesLinkExist :: Location loc => loc -> BS.ByteString -> Maybe LAPL -> IO Bool
 doesLinkExist loc name lapl =
     htriToBool $
-        BS.useAsCString name $ \name ->
-            h5l_exists (hid loc) name (maybe h5p_DEFAULT hid lapl)
+        BS.useAsCString name $ \cname ->
+            h5l_exists (hid loc) cname (maybe h5p_DEFAULT hid lapl)
 
 moveLink :: (Location src, Location dst) => src -> BS.ByteString -> dst -> BS.ByteString -> Maybe LCPL -> Maybe LAPL -> IO ()
 moveLink  src srcName dst dstName lcpl lapl =
     withErrorCheck_ $
-        BS.useAsCString srcName $ \srcName ->
-            BS.useAsCString dstName $ \dstName ->
-                h5l_move (hid src) srcName (hid dst) dstName
+        BS.useAsCString srcName $ \csrcName ->
+            BS.useAsCString dstName $ \cdstName ->
+                h5l_move (hid src) csrcName (hid dst) cdstName
                     (maybe h5p_DEFAULT hid lcpl)
                     (maybe h5p_DEFAULT hid lapl)
 
 copyLink :: (Location src, Location dst) => src -> BS.ByteString -> dst -> BS.ByteString -> Maybe LCPL -> Maybe LAPL -> IO ()
 copyLink  src srcName dst dstName lcpl lapl =
     withErrorCheck_ $
-        BS.useAsCString srcName $ \srcName ->
-            BS.useAsCString dstName $ \dstName ->
-                h5l_copy (hid src) srcName (hid dst) dstName
+        BS.useAsCString srcName $ \csrcName ->
+            BS.useAsCString dstName $ \cdstName ->
+                h5l_copy (hid src) csrcName (hid dst) cdstName
                     (maybe h5p_DEFAULT hid lcpl)
                     (maybe h5p_DEFAULT hid lapl)
 
 deleteLink :: Location t => t -> BS.ByteString -> Maybe LAPL -> IO ()
 deleteLink loc name lapl =
     withErrorCheck_ $
-        BS.useAsCString name $ \name ->
-            h5l_delete (hid loc) name (maybe h5p_DEFAULT hid lapl)
+        BS.useAsCString name $ \cname ->
+            h5l_delete (hid loc) cname (maybe h5p_DEFAULT hid lapl)
 
 data LinkType
     = External
@@ -104,6 +104,7 @@ data LinkType
     | OtherLinkType !H5L_type_t
     deriving (Eq, Ord, Read, Show)
 
+linkTypeFromCode :: H5L_type_t -> LinkType
 linkTypeFromCode c
     | c == h5l_TYPE_EXTERNAL    = External
     | c == h5l_TYPE_HARD        = Hard
@@ -136,23 +137,23 @@ getLinkInfo loc name lapl =
     fmap readLinkInfo $
         withOut_ $ \info ->
             withErrorCheck_ $
-                BS.useAsCString name $ \name ->
-                    h5l_get_info (hid loc) name info (maybe h5p_DEFAULT hid lapl)
+                BS.useAsCString name $ \cname ->
+                    h5l_get_info (hid loc) cname info (maybe h5p_DEFAULT hid lapl)
 
 getSymLinkVal :: Location loc => loc -> BS.ByteString -> Maybe LAPL -> IO BS.ByteString
 getSymLinkVal loc name mb_lapl =
-    BS.useAsCString name $ \name -> do
+    BS.useAsCString name $ \cname -> do
         let lapl = maybe h5p_DEFAULT hid mb_lapl
         info <- withOut_ $ \info ->
             withErrorCheck_ $
-                    h5l_get_info (hid loc) name info lapl
+                    h5l_get_info (hid loc) cname info lapl
 
         let n = h5l_info_t'u'val_size info
 
         buf <- mallocBytes (fromIntegral n)
 
         withErrorCheck_ $
-            h5l_get_val (hid loc) name (OutArray buf) n lapl
+            h5l_get_val (hid loc) cname (OutArray buf) n lapl
         -- TODO: this will leak memory if an exception is thrown
 
         BS.packCStringLen (buf, fromIntegral n)
@@ -166,54 +167,54 @@ with_iterate_t :: (Group -> BS.ByteString -> LinkInfo -> IO HErr_t)
      -> (H5L_iterate_t () -> InOut () -> IO HErr_t)
      -> IO HErr_t
 with_iterate_t op f = do
-    exception <- newIORef Nothing :: IO (IORef (Maybe SomeException))
+    exception1 <- newIORef Nothing :: IO (IORef (Maybe SomeException))
 
-    op <- wrap_H5L_iterate_t $ \grp name (In link) _opData -> do
-        name <- BS.packCString name
-        link <- peek link
-        result <- try (op (uncheckedFromHId grp) name (readLinkInfo link))
+    op1 <- wrap_H5L_iterate_t $ \grp name (In link) _opData -> do
+        name1 <- BS.packCString name
+        link1 <- peek link
+        result <- try (op (uncheckedFromHId grp) name1 (readLinkInfo link1))
         case result of
             Left exc -> do
-                writeIORef exception (Just exc)
+                writeIORef exception1 (Just exc)
                 return maxBound
             Right x -> return x
 
-    result <- f op (InOut nullPtr) `finally` freeHaskellFunPtr op
+    result <- f op1 (InOut nullPtr) `finally` freeHaskellFunPtr op1
 
     if result == maxBound
         then do
-            exception <- readIORef exception
-            maybe (return result) throwIO exception
+            exception2 <- readIORef exception1
+            maybe (return result) throwIO exception2
 
         else return result
 
 iterateLinks :: Location t => t -> IndexType -> IterOrder -> Maybe HSize -> (Group -> BS.ByteString -> LinkInfo -> IO HErr_t) -> IO HSize
 iterateLinks loc indexType order startIndex op =
     fmap HSize $
-        withInOut_ (maybe 0 hSize startIndex) $ \startIndex ->
+        withInOut_ (maybe 0 hSize startIndex) $ \ioStartIndex ->
             withErrorCheck_ $
-                with_iterate_t op $ \op opData ->
-                    h5l_iterate (hid loc) (indexTypeCode indexType) (iterOrderCode order) startIndex op opData
+                with_iterate_t op $ \iop opData ->
+                    h5l_iterate (hid loc) (indexTypeCode indexType) (iterOrderCode order) ioStartIndex iop opData
 
 iterateLinksByName :: Location t => t -> BS.ByteString -> IndexType -> IterOrder -> Maybe HSize -> Maybe LAPL -> (Group -> BS.ByteString -> LinkInfo -> IO HErr_t) -> IO HSize
 iterateLinksByName loc groupName indexType order startIndex lapl op = do
     fmap HSize $
-        withInOut_ (maybe 0 hSize startIndex) $ \startIndex ->
+        withInOut_ (maybe 0 hSize startIndex) $ \ioStartIndex ->
             withErrorCheck_ $
-                with_iterate_t op $ \op opData ->
-                    BS.useAsCString groupName $ \groupName ->
-                        h5l_iterate_by_name (hid loc) groupName (indexTypeCode indexType) (iterOrderCode order) startIndex op opData (maybe h5p_DEFAULT hid lapl)
+                with_iterate_t op $ \iop opData ->
+                    BS.useAsCString groupName $ \cgroupName ->
+                        h5l_iterate_by_name (hid loc) cgroupName (indexTypeCode indexType) (iterOrderCode order) ioStartIndex iop opData (maybe h5p_DEFAULT hid lapl)
 
 visitLinks :: Location t => t -> IndexType -> IterOrder -> (Group -> BS.ByteString -> LinkInfo -> IO HErr_t) -> IO ()
 visitLinks loc indexType order op =
     withErrorCheck_ $
-        with_iterate_t op $ \op opData ->
-            h5l_visit (hid loc) (indexTypeCode indexType) (iterOrderCode order) op opData
+        with_iterate_t op $ \iop opData ->
+            h5l_visit (hid loc) (indexTypeCode indexType) (iterOrderCode order) iop opData
 
 visitLinksByName :: Location t => t -> BS.ByteString -> IndexType -> IterOrder -> Maybe LAPL -> (Group -> BS.ByteString -> LinkInfo -> IO HErr_t) -> IO ()
 visitLinksByName loc groupName indexType order lapl op =
     withErrorCheck_ $
-        with_iterate_t op $ \op opData ->
-            BS.useAsCString groupName $ \groupName ->
-                h5l_visit_by_name (hid loc) groupName (indexTypeCode indexType) (iterOrderCode order) op opData (maybe h5p_DEFAULT hid lapl)
+        with_iterate_t op $ \iop opData ->
+            BS.useAsCString groupName $ \cgroupName ->
+                h5l_visit_by_name (hid loc) cgroupName (indexTypeCode indexType) (iterOrderCode order) iop opData (maybe h5p_DEFAULT hid lapl)
 

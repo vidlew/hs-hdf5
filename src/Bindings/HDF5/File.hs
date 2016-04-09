@@ -48,6 +48,7 @@ import Bindings.HDF5.Raw.H5F
 import Bindings.HDF5.Raw.H5I
 import Bindings.HDF5.Raw.H5P
 import Data.Bits
+import Data.Maybe
 import qualified Data.ByteString as BS
 import qualified Data.Vector.Storable as SV
 import Foreign.C
@@ -150,12 +151,12 @@ rawCloseDegrees =
     ]
 
 closeDegreeFromCode :: H5F_close_degree_t -> Maybe CloseDegree
-closeDegreeFromCode c = maybe Nothing id (lookup c rawCloseDegreesInv)
+closeDegreeFromCode c = fromMaybe Nothing (lookup c rawCloseDegreesInv)
 
 closeDegreeToCode :: Maybe CloseDegree -> H5F_close_degree_t
-closeDegreeToCode c = case lookup c rawCloseDegrees of
-    Nothing -> error ("closeDegreeToCode: unrecognized H5F_close_degree_t: " ++ show c)
-    Just d  -> d
+closeDegreeToCode c =
+    fromMaybe (error ("closeDegreeToCode: unrecognized H5F_close_degree_t: " ++ show c))
+                  (lookup c rawCloseDegrees)
 
 instance Storable (Maybe CloseDegree) where
     sizeOf _    = sizeOf    (undefined :: H5F_close_degree_t)

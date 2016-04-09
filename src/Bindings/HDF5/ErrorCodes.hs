@@ -4,6 +4,7 @@ module Bindings.HDF5.ErrorCodes
     , MinorErrCode(..), minorErrorCode, minorErrorFromCode
 
     ) where
+import Data.Maybe
 
 import Bindings.HDF5.Raw.H5E
 import Bindings.HDF5.Raw.H5I
@@ -116,9 +117,9 @@ majorErrorCode (Just (UnknownMajor code)) = Just code
 majorErrorCode err = lookup err rawMajorErrCodes
 
 majorErrorFromCode :: HId_t -> Maybe MajorErrCode
-majorErrorFromCode code = case lookup code rawMajorErrCodesInv of
-    Nothing  -> Just (UnknownMajor code)
-    Just err -> err
+majorErrorFromCode code =
+    fromMaybe (Just (UnknownMajor code))
+                  (lookup code rawMajorErrCodesInv)
 
 instance Storable (Maybe MajorErrCode) where
     sizeOf    _ = sizeOf    (undefined :: HId_t)
@@ -485,9 +486,9 @@ minorErrorCode (Just (UnknownMinor code)) = Just code
 minorErrorCode err = lookup err rawMinorErrCodes
 
 minorErrorFromCode :: HId_t -> Maybe MinorErrCode
-minorErrorFromCode code = case lookup code rawMinorErrCodesInv of
-    Nothing  -> Just (UnknownMinor code)
-    Just err -> err
+minorErrorFromCode code =
+    fromMaybe (Just (UnknownMinor code))
+                  (lookup code rawMinorErrCodesInv)
 
 instance Storable (Maybe MinorErrCode) where
     sizeOf    _ = sizeOf    (undefined :: HId_t)

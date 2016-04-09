@@ -1,4 +1,3 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Bindings.HDF5.Core.HDFResultType where
 
 import Bindings.HDF5.Raw

@@ -80,8 +80,8 @@ closeDataset (Dataset dset_id) =
 
 getDatasetSpace :: Dataset -> IO Dataspace
 getDatasetSpace (Dataset dset_id) =
-    fmap uncheckedFromHId $
-        withErrorCheck (h5d_get_space dset_id)
+    uncheckedFromHId
+    <$> withErrorCheck (h5d_get_space dset_id)
 
 data SpaceStatus
     = NotAllocated
@@ -122,8 +122,8 @@ getDatasetAccessPList (Dataset dset_id) =
 
 getDatasetStorageSize :: Dataset -> IO HSize
 getDatasetStorageSize (Dataset dset_id) =
-    fmap HSize $
-        h5d_get_storage_size dset_id
+    HSize
+    <$> h5d_get_storage_size dset_id
 
 getDatasetOffset :: Dataset -> IO HAddr
 getDatasetOffset (Dataset dset_id) =

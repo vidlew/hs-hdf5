@@ -41,6 +41,8 @@ import Foreign
 import Foreign.C
 import Foreign.Ptr.Conventions
 
+{-# ANN module "HLint: ignore Use camelCase" #-}
+
 createHardLink :: (Location src, Location dst) => src -> BS.ByteString -> dst -> BS.ByteString -> Maybe LCPL -> Maybe LAPL -> IO ()
 createHardLink src srcName dst dstName lcpl lapl =
     withErrorCheck_ $
@@ -197,7 +199,7 @@ iterateLinks loc indexType order startIndex op =
                     h5l_iterate (hid loc) (indexTypeCode indexType) (iterOrderCode order) ioStartIndex iop opData
 
 iterateLinksByName :: Location t => t -> BS.ByteString -> IndexType -> IterOrder -> Maybe HSize -> Maybe LAPL -> (Group -> BS.ByteString -> LinkInfo -> IO HErr_t) -> IO HSize
-iterateLinksByName loc groupName indexType order startIndex lapl op = do
+iterateLinksByName loc groupName indexType order startIndex lapl op =
     fmap HSize $
         withInOut_ (maybe 0 hSize startIndex) $ \ioStartIndex ->
             withErrorCheck_ $

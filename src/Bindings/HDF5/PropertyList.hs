@@ -126,8 +126,8 @@ createPropertyList = create staticPlistClass
     where
         create :: PropertyList t => Tagged t PropertyListClassID -> IO t
         create (Tagged cls)
-            = fmap uncheckedCastPlist
-                $ createPropertyListWithClass cls
+            = uncheckedCastPlist
+              <$> createPropertyListWithClass cls
 
 createPropertyListWithClass :: PropertyListClassID -> IO PropertyListID
 createPropertyListWithClass (PropertyListClassID cls) =

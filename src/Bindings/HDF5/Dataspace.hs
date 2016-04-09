@@ -105,17 +105,17 @@ createSimpleDataspace :: [HSize] -> IO Dataspace
 createSimpleDataspace dims =
     fmap Dataspace $
         withErrorCheck $
-            withInList (map hSize dims) $ \dims ->
-                h5s_create_simple n dims (InArray nullPtr)
+            withInList (map hSize dims) $ \idims ->
+                h5s_create_simple n idims (InArray nullPtr)
     where n = genericLength dims
 
 createExpandableDataspace :: [(HSize, Maybe HSize)] -> IO Dataspace
 createExpandableDataspace dims =
     fmap Dataspace $
         withErrorCheck $
-            withInList (map hSize dimSizes) $ \dimSizes ->
-                withInList (map (maybe h5s_UNLIMITED hSize) dimLimits) $ \dimLimits ->
-                    h5s_create_simple n dimSizes dimLimits
+            withInList (map hSize dimSizes) $ \idimSizes ->
+                withInList (map (maybe h5s_UNLIMITED hSize) dimLimits) $ \idimLimits ->
+                    h5s_create_simple n idimSizes idimLimits
     where
         n = genericLength dims
         (dimSizes, dimLimits) = unzip dims
@@ -134,9 +134,9 @@ closeDataspace (Dataspace space_id) =
 encodeDataspace :: Dataspace -> IO BS.ByteString
 encodeDataspace (Dataspace space_id) =
     withOutByteString $ \buf bufSz ->
-        withInOut_ bufSz $ \bufSz ->
+        withInOut_ bufSz $ \ioBufSz ->
             withErrorCheck_ $
-                h5s_encode space_id buf bufSz
+                h5s_encode space_id buf ioBufSz
 
 decodeDataspace :: BS.ByteString -> IO Dataspace
 decodeDataspace bs = BS.unsafeUseAsCString bs $ \buf ->
@@ -210,11 +210,11 @@ selectHyperslab space@(Dataspace space_id) oper hyperSlab = do
         (fail "selectHyperslab: the given hyperslab has the wrong number of dimensions for this dataspace")
 
     withErrorCheck_ $
-        withInList' start $ \start ->
-            maybe withNull withInList' stride $ \stride ->
-                withInList' count $ \count ->
-                    maybe withNull withInList' block $ \block ->
-                        h5s_select_hyperslab space_id (rawSelectionOperator oper) start stride count block
+        withInList' start $ \istart ->
+            maybe withNull withInList' stride $ \istride ->
+                withInList' count $ \icount ->
+                    maybe withNull withInList' block $ \iblock ->
+                        h5s_select_hyperslab space_id (rawSelectionOperator oper) istart istride icount iblock
     where
         (start, mbStrides, count, mbBlocks) = unzip4 hyperSlab
         stride
@@ -236,8 +236,8 @@ selectElements space@(Dataspace space_id) oper elems = do
                 (dim, elt) -> elems V.! elt SV.! dim
 
     withErrorCheck_ $
-        withInVector packed $ \elems ->
-            h5s_select_elements space_id (rawSelectionOperator oper) (fromIntegral nElems) (castWrappedPtr elems)
+        withInVector packed $ \ielems ->
+            h5s_select_elements space_id (rawSelectionOperator oper) (fromIntegral nElems) (castWrappedPtr ielems)
 
 -- TODO: determine whether to throw an exception or simply report it
 -- when the returned value is invalid.
@@ -280,8 +280,8 @@ offsetSimpleDataspaceSelection space@(Dataspace space_id) offsets = do
         (fail "offsetSimpleDataspaceSelection: offset vector's length must equal number dimensions in dataspace")
 
     withErrorCheck_ $
-        withInVector offsets $ \offsets ->
-            h5s_offset_simple space_id (castWrappedPtr offsets)
+        withInVector offsets $ \ioffsets ->
+            h5s_offset_simple space_id (castWrappedPtr ioffsets)
 
 selectionValid :: Dataspace -> IO Bool
 selectionValid (Dataspace space_id) =
@@ -363,6 +363,7 @@ selectionType c
     | c == h5s_SEL_NONE         = Nothing
     | c == h5s_SEL_POINTS       = Just Points
     | c == h5s_SEL_HYPERSLABS   = Just Hyperslabs
+    | otherwise                 = error ("unknown h5s_SEL value" ++ show c)
 
 getSelectionType :: Dataspace -> IO (Maybe SelectionType)
 getSelectionType (Dataspace space_id) =

@@ -13,6 +13,8 @@ import Bindings.HDF5.Core.HDFResultType
 import Data.Bits
 import Foreign.Storable
 
+{-# ANN module "HLint: ignore Use camelCase" #-}
+
 newtype HSize = HSize HSize_t
     deriving (Eq, Ord, Enum, Bounded, Num, Real, Integral, Bits, Storable)
 

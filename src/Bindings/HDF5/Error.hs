@@ -16,27 +16,30 @@ module Bindings.HDF5.Error
     , getCurrentErrorStack, setCurrentErrorStack,
     ) where
 
+import Control.Monad
+import Control.Exception (throwIO, finally, Exception)
+import qualified Data.ByteString as BS
+import Data.IORef
+import Data.Typeable (Typeable)
+import Foreign.C
+import Foreign.Ptr
+import Foreign.Storable
+
 import Bindings.HDF5.Core
 import Bindings.HDF5.ErrorCodes
 import Bindings.HDF5.Raw.H5
 import Bindings.HDF5.Raw.H5E
 import Bindings.HDF5.Raw.H5I
-import Control.Exception (throwIO, finally, Exception)
-import qualified Data.ByteString as BS
-import Data.IORef
-import Data.Typeable (Typeable)
-import Foreign
-import Foreign.C
 import Foreign.Ptr.Conventions
 
 newtype ErrorClassID = ErrorClassID HId_t
     deriving (Eq, Ord, Typeable, HId, FromHId, HDFResultType)
 
 instance Show ErrorClassID where
-    showsPrec p cls@(ErrorClassID (HId_t hid))
+    showsPrec p cls@(ErrorClassID (HId_t h))
         | cls == hdfError
             = showString "hdfError"
-        | otherwise = showsPrec p hid
+        | otherwise = showsPrec p h
 
 hdfError :: ErrorClassID
 hdfError = ErrorClassID h5e_ERR_CLS
@@ -75,11 +78,11 @@ errorStack :: HDF5Exception -> [HDF5Error]
 errorStack (HDF5Exception es) = es
 
 withErrorWhen :: (t -> Bool) -> IO t -> IO t
-withErrorWhen isError action = do
+withErrorWhen isError_ action = do
     -- h5e_try does not alter the stack, just suspends the 'automatic' exception handler
     result <- h5e_try action
 
-    if isError result
+    if isError_ result
         then do
             stackId <- h5e_get_current_stack
             errors  <- newIORef []
@@ -89,7 +92,7 @@ withErrorWhen isError action = do
                 modifyIORef errors (err_desc :)
                 return (HErr_t 0)
 
-            h5e_walk2 stackId h5e_WALK_DOWNWARD walk (InOut nullPtr)
+            _ <- h5e_walk2 stackId h5e_WALK_DOWNWARD walk (InOut nullPtr)
                 `finally` do
                     freeHaskellFunPtr walk
                     h5e_close_stack stackId
@@ -99,9 +102,8 @@ withErrorWhen isError action = do
         else return result
 
 withErrorWhen_ :: (t -> Bool) -> IO t -> IO ()
-withErrorWhen_ isError action = do
-    withErrorWhen isError action
-    return ()
+withErrorWhen_ isErr action =
+    void $ withErrorWhen isErr action
 
 withErrorCheck :: HDFResultType t => IO t -> IO t
 withErrorCheck = withErrorWhen isError
@@ -117,27 +119,26 @@ registerErrorClass :: BS.ByteString -> BS.ByteString -> BS.ByteString -> IO Erro
 registerErrorClass name libName version =
     fmap ErrorClassID $
         withErrorCheck $
-            BS.useAsCString name $ \name ->
-                BS.useAsCString libName $ \libName ->
-                    BS.useAsCString version $ \version ->
-                        h5e_register_class name libName version
+            BS.useAsCString name $ \cname ->
+                BS.useAsCString libName $ \clibName ->
+                    BS.useAsCString version $ \cversion ->
+                        h5e_register_class cname clibName cversion
 
 unregisterErrorClass :: ErrorClassID -> IO ()
-unregisterErrorClass (ErrorClassID hid) = do
-    withErrorCheck (h5e_unregister_class hid)
-    return ()
+unregisterErrorClass (ErrorClassID h) =
+    withErrorCheck_ (h5e_unregister_class h)
 
 createMajorErrCode :: ErrorClassID -> BS.ByteString -> IO MajorErrCode
 createMajorErrCode (ErrorClassID cls) msg =
     fmap UnknownMajor $
         withErrorCheck $
-            BS.useAsCString msg $ \msg ->
-                h5e_create_msg cls h5e_MAJOR msg
+            BS.useAsCString msg $ \cmsg ->
+                h5e_create_msg cls h5e_MAJOR cmsg
 
 releaseMajorErrCode :: MajorErrCode -> IO ()
-releaseMajorErrCode (UnknownMajor code) = do
-    withErrorCheck (h5e_close_msg code)
-    return ()
+releaseMajorErrCode (UnknownMajor code) =
+    withErrorCheck_ (h5e_close_msg code)
+
 releaseMajorErrCode otherErr = fail $ concat
     [ "releaseMajorErrCode: "
     , show otherErr
@@ -148,13 +149,13 @@ createMinorErrCode :: ErrorClassID -> BS.ByteString -> IO MinorErrCode
 createMinorErrCode (ErrorClassID cls) msg =
     fmap UnknownMinor $
         withErrorCheck $
-            BS.useAsCString msg $ \msg ->
-                h5e_create_msg cls h5e_MINOR msg
+            BS.useAsCString msg $ \cmsg ->
+                h5e_create_msg cls h5e_MINOR cmsg
 
 releaseMinorErrCode :: MinorErrCode -> IO ()
-releaseMinorErrCode (UnknownMinor code) = do
-    withErrorCheck (h5e_close_msg code)
-    return ()
+releaseMinorErrCode (UnknownMinor code) =
+    withErrorCheck_ (h5e_close_msg code)
+
 releaseMinorErrCode otherErr = fail $ concat
     [ "releaseMinorErrCode: "
     , show otherErr
@@ -175,14 +176,12 @@ getCurrentErrorStack =
         (withErrorCheck h5e_get_current_stack)
 
 setCurrentErrorStack :: ErrorStack -> IO ()
-setCurrentErrorStack (ErrorStack hid) = do
-    withErrorCheck (h5e_set_current_stack hid)
-    return ()
+setCurrentErrorStack (ErrorStack h) =
+    withErrorCheck_ (h5e_set_current_stack h)
 
 closeErrorStack :: ErrorStack -> IO ()
-closeErrorStack (ErrorStack hid) = do
-    withErrorCheck (h5e_close_stack hid)
-    return ()
+closeErrorStack (ErrorStack h) =
+    withErrorCheck_ (h5e_close_stack h)
 
 foreign import ccall "wrapper" wrapStackWalk
     :: (CUInt -> In H5E_error2_t -> InOut a -> IO HErr_t)

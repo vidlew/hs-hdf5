@@ -22,7 +22,7 @@ module Bindings.HDF5.PropertyList
     , getClassName
 
     , PropertyListID
-    , PropertyListOrClass(..)
+    , PropertyListOrClass
     , PropertyList(..)
     , Tagged(..)
     , castPropertyList
@@ -58,6 +58,13 @@ import Foreign.Ptr.Conventions
 
 newtype PropertyListClassID = PropertyListClassID HId_t
     deriving (Eq, HId, FromHId, HDFResultType)
+
+root, fileCreate, fileAccess, fileMount:: PropertyListClassID
+datasetCreate, datasetAccess, datasetXfer :: PropertyListClassID
+objectCreate, groupCreate, groupAccess :: PropertyListClassID
+datatypeCreate, datatypeAccess :: PropertyListClassID
+stringCreate, attributeCreate :: PropertyListClassID
+objectCopy, linkCreate, linkAccess :: PropertyListClassID
 
 root                = PropertyListClassID h5p_ROOT              -- no parent
 objectCreate        = PropertyListClassID h5p_OBJECT_CREATE     -- parent:  root
@@ -131,15 +138,15 @@ createPropertyListWithClass (PropertyListClassID cls) =
 propertyExists :: PropertyList t => t -> BS.ByteString -> IO Bool
 propertyExists plist name =
     htriToBool $
-        BS.useAsCString name $ \name ->
-            h5p_exist (hid plist) name
+        BS.useAsCString name $ \cname ->
+            h5p_exist (hid plist) cname
 
 getPropertySize :: PropertyListOrClass t => t -> BS.ByteString -> IO CSize
 getPropertySize plist name =
     withOut_ $ \sz ->
         withErrorCheck_ $
-            BS.useAsCString name $ \name ->
-                h5p_get_size (hid plist) name sz
+            BS.useAsCString name $ \cname ->
+                h5p_get_size (hid plist) cname sz
 
 getNProps :: PropertyListOrClass t => t -> IO CSize
 getNProps plist =

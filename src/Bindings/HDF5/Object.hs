@@ -69,9 +69,9 @@ castObject = castTo staticObjectType
 openObject :: Location loc => loc -> BS.ByteString -> Maybe LAPL -> IO ObjectId
 openObject loc name lapl =
     fmap ObjectId $
-        BS.useAsCString name $ \name ->
+        BS.useAsCString name $ \cname ->
             withErrorCheck $
-                h5o_open (hid loc) name (maybe h5p_DEFAULT hid lapl)
+                h5o_open (hid loc) cname (maybe h5p_DEFAULT hid lapl)
 
 data ObjectType
     = FileObj
@@ -81,9 +81,6 @@ data ObjectType
     | DatasetObj
     | AttrObj
     deriving (Eq, Ord, Read, Show, Enum, Bounded)
-
-instance HDFResultType H5I_type_t where
-    isError (H5I_type_t c) = c < 0
 
 objectTypeCode :: ObjectType -> H5I_type_t
 objectTypeCode FileObj      = h5i_FILE
@@ -108,8 +105,8 @@ getObjectType obj =
 linkObject :: (Object obj, Location loc) => obj -> loc -> BS.ByteString -> Maybe LCPL -> Maybe LAPL -> IO ()
 linkObject obj loc name lcpl lapl =
     withErrorCheck_ $
-        BS.useAsCString name $ \name ->
-            h5o_link (hid obj) (hid loc) name (maybe h5p_DEFAULT hid lcpl) (maybe h5p_DEFAULT hid lapl)
+        BS.useAsCString name $ \cname ->
+            h5o_link (hid obj) (hid loc) cname (maybe h5p_DEFAULT hid lcpl) (maybe h5p_DEFAULT hid lapl)
 
 closeObject :: Object obj => obj -> IO ()
 closeObject obj =
@@ -119,14 +116,14 @@ closeObject obj =
 copyObject :: (Location src, Location dst) => src -> BS.ByteString -> dst -> BS.ByteString -> Maybe OCPYPL -> Maybe LCPL -> IO ()
 copyObject src srcName dst dstName ocpypl lcpl =
     withErrorCheck_ $
-        BS.useAsCString srcName $ \srcName ->
-            BS.useAsCString dstName $ \dstName ->
-                h5o_copy (hid src) srcName (hid dst) dstName
+        BS.useAsCString srcName $ \csrcName ->
+            BS.useAsCString dstName $ \cdstName ->
+                h5o_copy (hid src) csrcName (hid dst) cdstName
                     (maybe h5p_DEFAULT hid ocpypl)
                     (maybe h5p_DEFAULT hid lcpl)
 
 doesObjectExist :: Location loc => loc -> BS.ByteString -> Maybe LAPL -> IO Bool
 doesObjectExist loc name lapl =
     htriToBool $
-        BS.useAsCString name $ \name ->
-            h5o_exists_by_name (hid loc) name (maybe h5p_DEFAULT hid lapl)
+        BS.useAsCString name $ \cname ->
+            h5o_exists_by_name (hid loc) cname (maybe h5p_DEFAULT hid lapl)

@@ -9,7 +9,6 @@ import Foreign.C.Types
 import Bindings.HDF5.Core
 import Bindings.HDF5.Object
 import Bindings.HDF5.Raw
-import Bindings.HDF5.Raw.H5I
 import Data.Tagged
 import Foreign.Storable
 

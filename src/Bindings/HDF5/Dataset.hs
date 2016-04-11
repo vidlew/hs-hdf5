@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Bindings.HDF5.Dataset
     ( Dataset
@@ -25,6 +26,10 @@ module Bindings.HDF5.Dataset
 
     , fillSelection
     ) where
+
+#if __HASKELL_VERSION__ < 710
+import Control.Applicative ((<$>))
+#endif
 
 import Bindings.HDF5.Core
 import Bindings.HDF5.Dataspace

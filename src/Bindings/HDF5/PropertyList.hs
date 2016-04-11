@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Bindings.HDF5.PropertyList
     ( PropertyListClassID
@@ -44,6 +45,10 @@ module Bindings.HDF5.PropertyList
     , closePropertyListClass
     , closePropertyList
     ) where
+
+#if __HASKELL_VERSION__ < 710
+import Control.Applicative ((<$>))
+#endif
 
 import Bindings.HDF5.Raw.H5I
 import Bindings.HDF5.Raw.H5P

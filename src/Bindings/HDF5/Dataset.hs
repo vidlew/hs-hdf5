@@ -27,7 +27,7 @@ module Bindings.HDF5.Dataset
     , fillSelection
     ) where
 
-#if __HASKELL_VERSION__ < 710
+#if __GLASGOW_HASKELL__ < 710
 import Control.Applicative ((<$>))
 #endif
 

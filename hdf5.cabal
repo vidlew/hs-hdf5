@@ -2,7 +2,7 @@ name:                   hdf5
 version:                1.8.8
 stability:              provisional
 
-cabal-version:          >= 1.6
+cabal-version:          >= 1.8
 build-type:             Simple
 
 author:                 James Cook <mokus@deepbondi.net>
@@ -49,12 +49,25 @@ Library
                       , Bindings.HDF5.PropertyList.STRCPL
                       , Bindings.HDF5.PropertyList.TAPL
                       , Bindings.HDF5.PropertyList.TCPL
-                        
+
   other-modules:        Bindings.HDF5.Core.HDFResultType
                       , Bindings.HDF5.Core.HId
-                        
+
   build-depends:        base >= 3 && < 5
                       , bindings-hdf5
                       , bytestring
                       , tagged
                       , vector
+
+test-suite hdf5-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  build-depends:       base
+                     , hspec >= 2.4.3 && < 2.5
+                     , QuickCheck >= 2.9.2 && < 2.10
+                     , temporary >= 1.2.0.4 && < 1.3
+                     , hdf5
+                     , bytestring
+                     , exceptions
+  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N

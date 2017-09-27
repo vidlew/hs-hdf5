@@ -259,7 +259,7 @@ getFileIntent (File file_id) =
 
 getFileName :: File -> IO BS.ByteString
 getFileName (File file_id) =
-    withOutByteString $ \buf bufSz ->
+    withOutByteString' $ \buf bufSz ->
         withErrorWhen (< 0) $
             h5f_get_name file_id buf bufSz
 

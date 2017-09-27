@@ -70,4 +70,5 @@ test-suite hdf5-test
                      , hdf5
                      , bytestring
                      , exceptions
+                     , vector
   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N

@@ -59,6 +59,7 @@ Library
                       , tagged
                       , vector
 
+
 test-suite hdf5-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
@@ -71,4 +72,5 @@ test-suite hdf5-test
                      , bytestring
                      , exceptions
                      , vector
+  other-modules:       Spec.Util, Spec.File
   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N

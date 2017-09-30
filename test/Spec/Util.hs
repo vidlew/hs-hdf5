@@ -9,6 +9,7 @@ import Control.Exception (bracket)
 
 import qualified Data.ByteString.Char8 as BS
 import qualified Bindings.HDF5.File as F
+import qualified Bindings.HDF5.Group as G
 
 -- TODO : Use H5FD_CORE driver to avoid writing files : will require high-level wrapper for H5Pset_fapl_core
 
@@ -24,3 +25,9 @@ withTestFile callback = withSystemTempFile "hs-hdf5.hdf" callback2 where
 
 withTestFile' :: (F.File -> IO a) -> IO a
 withTestFile' callback = withTestFile (\path file -> callback file)
+
+withGroup :: BS.ByteString -> (F.File -> IO a) -> IO a
+withGroup name f = withTestFile' $ \file -> do
+  group <- G.createGroup file name Nothing Nothing Nothing
+  G.closeGroup group
+  f file

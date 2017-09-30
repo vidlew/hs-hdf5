@@ -40,22 +40,23 @@ describeFile = do
     count <- F.getFileObjCount Nothing True [F.All]
     count `shouldBe` 0
 
-  it "test file has one file" $ do
-    count <- withTestFile' $ \file -> F.getFileObjCount (Just file) True [F.Files]
-    count `shouldBe` 1
+  around withTestFile' $ do
+    it "test file has one file" $ \file -> do
+      count <- F.getFileObjCount (Just file) True [F.Files]
+      count `shouldBe` 1
 
-  it "test file has no groups" $ do
-    count <- withTestFile' $ \file -> F.getFileObjCount (Just file) True [F.Groups]
-    count `shouldBe` 0
+    it "test file has no groups" $ \file -> do
+      count <- F.getFileObjCount (Just file) True [F.Groups]
+      count `shouldBe` 0
 
-  it "test file has no datasets" $ do
-    count <- withTestFile' $ \file -> F.getFileObjCount (Just file) True [F.Datasets]
-    count `shouldBe` 0
+    it "test file has no datasets" $ \file -> do
+      count <- F.getFileObjCount (Just file) True [F.Datasets]
+      count `shouldBe` 0
 
-  it "test file has 1 open object" $ do
-    vec <- withTestFile' $ \file -> F.getOpenObjects (Just file)True [F.All]
-    SV.length vec `shouldBe` 1
+    it "test file has 1 open object" $ \file -> do
+      vec <- F.getOpenObjects (Just file)True [F.All]
+      SV.length vec `shouldBe` 1
 
-  it "test file has no free space" $ do
-    size <- withTestFile' $ \file -> F.getFileFreespace file
-    size `shouldBe` 0
+    it "test file has no free space" $ \file -> do
+      size <- F.getFileFreespace file
+      size `shouldBe` 0

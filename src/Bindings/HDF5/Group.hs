@@ -1,4 +1,35 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{- |
+Typesafe wrappers around HDF5 functions from the H5G API.
+
+Feature coverage is as follows:
+
+  h5g_get_info                  	[  OK  ]
+  h5g_get_objname_by_idx        	[ FAIL ] (deprecated)
+  h5g_get_objinfo               	[ FAIL ] (deprecated)
+  h5g_iterate                   	[ FAIL ] (deprecated)
+  h5g_get_info_by_idx           	[ FAIL ]
+  h5g_link                      	[ FAIL ] (deprecated)
+  h5g_unlink                    	[ FAIL ] (deprecated)
+  h5g_get_objtype_by_idx        	[ FAIL ] (deprecated)
+  h5g_get_linkval               	[ FAIL ] (deprecated)
+  h5g_create_anon               	[  OK  ]
+  h5g_get_info_by_name          	[  OK  ]
+  h5g_get_num_objs              	[ FAIL ] (deprecated)
+  h5g_close                     	[  OK  ]
+  h5g_move                      	[ FAIL ] (deprecated)
+  h5g_open1                     	[ FAIL ] (deprecated)
+  h5g_open2                     	[  OK  ]
+  h5g_link2                     	[ FAIL ] (deprecated)
+  h5g_set_comment               	[ FAIL ] (deprecated)
+  h5g_get_comment               	[ FAIL ] (deprecated)
+  h5g_get_create_plist          	[ FAIL ]
+  h5g_move2                     	[ FAIL ] (deprecated)
+  h5g_create2                   	[  OK  ]
+  h5g_create1                   	[ FAIL ] (deprecated)
+
+
+-}
 module Bindings.HDF5.Group
     ( Group
 
@@ -28,6 +59,8 @@ import qualified Data.ByteString as BS
 import Data.Int
 import Foreign.Ptr.Conventions
 
+-- * The Group type
+
 newtype Group = Group HId_t
     deriving (Eq, HId, FromHId, HDFResultType)
 
@@ -35,7 +68,17 @@ instance Location Group
 instance Object Group where
     staticObjectType = Tagged (Just GroupObj)
 
-createGroup :: Location t => t -> BS.ByteString -> Maybe LCPL -> Maybe GCPL -> Maybe GAPL -> IO Group
+-- * General group functions
+
+-- | Create a group given name, location and properties
+
+createGroup :: Location t =>
+               t                 -- ^ Parent location for the group
+               -> BS.ByteString  -- ^ Group name
+               -> Maybe LCPL     -- ^ Link creation properties
+               -> Maybe GCPL     -- ^ Group creation properties
+               -> Maybe GAPL     -- ^ Group access properties
+               -> IO Group       -- ^ Resulting group
 createGroup loc name lcpl gcpl gapl =
     fmap Group $
         withErrorCheck $
@@ -45,23 +88,36 @@ createGroup loc name lcpl gcpl gapl =
                     (maybe h5p_DEFAULT hid gcpl)
                     (maybe h5p_DEFAULT hid gapl)
 
-createAnonymousGroup :: Location t => t -> Maybe GCPL -> Maybe GAPL -> IO Group
+-- | Create an anonymous group without a name
+createAnonymousGroup :: Location t =>
+                        t              -- ^ Parent location for the group
+                        -> Maybe GCPL  -- ^ Group creation properties
+                        -> Maybe GAPL  -- ^ Group access properties
+                        -> IO Group    -- ^ Resulting group
 createAnonymousGroup loc gcpl gapl =
     fmap Group $
         withErrorCheck $
             h5g_create_anon (hid loc) (maybe h5p_DEFAULT hid gcpl) (maybe h5p_DEFAULT hid gapl)
 
-openGroup :: Location t => t -> BS.ByteString -> Maybe GAPL -> IO Group
+-- | Open an existing group
+openGroup :: Location t =>
+             t                 -- ^ Parent location
+             -> BS.ByteString  -- ^ Group name
+             -> Maybe GAPL     -- ^ Group access properties
+             -> IO Group       -- ^ Resulting group
 openGroup loc name gapl =
     fmap Group $
         withErrorCheck $
             BS.useAsCString name $ \cname ->
                 h5g_open2 (hid loc) cname (maybe h5p_DEFAULT hid gapl)
 
+-- | Close a group
 closeGroup :: Group -> IO ()
 closeGroup (Group grp) =
     withErrorCheck_ $
         h5g_close grp
+
+-- * Group metadata
 
 data GroupStorageType
     = CompactStorage

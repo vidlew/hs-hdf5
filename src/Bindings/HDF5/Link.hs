@@ -1,4 +1,30 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-
+
+  h5l_get_info_by_idx           	[ FAIL ]
+  h5l_iterate                   	[  OK  ]
+  h5l_register                  	[ FAIL ]
+  h5l_iterate_by_name           	[  OK  ]
+  h5l_unpack_elink_val          	[ FAIL ]
+  h5l_get_val_by_idx            	[ FAIL ]
+  h5l_create_external           	[  OK  ]
+  h5l_exists                    	[  OK  ]
+  h5l_move                      	[  OK  ]
+  h5l_create_ud                 	[ FAIL ]
+  h5l_create_hard               	[  OK  ]
+  h5l_is_registered             	[ FAIL ]
+  h5l_get_name_by_idx           	[ FAIL ]
+  h5l_create_soft               	[  OK  ]
+  h5l_copy                      	[  OK  ]
+  h5l_get_val                   	[  OK  ]
+  h5l_visit                     	[  OK  ]
+  h5l_get_info                  	[  OK  ]
+  h5l_delete_by_idx             	[ FAIL ]
+  h5l_visit_by_name             	[  OK  ]
+  h5l_delete                    	[  OK  ]
+  h5l_unregister                	[ FAIL ]
+
+-}
 module Bindings.HDF5.Link
     ( createHardLink
     , createSoftLink
@@ -219,4 +245,3 @@ visitLinksByName loc groupName indexType order lapl op =
         with_iterate_t op $ \iop opData ->
             BS.useAsCString groupName $ \cgroupName ->
                 h5l_visit_by_name (hid loc) cgroupName (indexTypeCode indexType) (iterOrderCode order) iop opData (maybe h5p_DEFAULT hid lapl)
-

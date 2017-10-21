@@ -216,6 +216,8 @@ with_iterate_t op f = do
 
         else return result
 
+-- TODO : It would be nice if we didn't expose HErr_t in these callback functions.
+--        Decide whether we want Either or Exceptions.
 iterateLinks :: Location t => t -> IndexType -> IterOrder -> Maybe HSize -> (Group -> BS.ByteString -> LinkInfo -> IO HErr_t) -> IO HSize
 iterateLinks loc indexType order startIndex op =
     fmap HSize $

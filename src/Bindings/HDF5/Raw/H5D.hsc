@@ -2,7 +2,13 @@
 #include <H5Dpublic.h>
 
 module Bindings.HDF5.Raw.H5D where
-#strict_import
+-- #strict_import
+import Foreign.Storable
+import Foreign.C.Types
+import Data.Int
+import Data.Word
+import Foreign.Ptr
+import Foreign.C.String (CString,CStringLen,CWString,CWStringLen)
 
 import Bindings.HDF5.Raw.H5
 import Bindings.HDF5.Raw.H5I
@@ -83,50 +89,50 @@ import Foreign.Ptr.Conventions
 #newtype_const H5D_fill_value_t, H5D_FILL_VALUE_USER_DEFINED
 
 -- |Operator function type for 'h5d_iterate'
--- 
+--
 -- Parameters:
--- 
+--
 -- [@ elem          :: 'InOut' a           @]    Pointer to the element in memory containing the current point.
--- 
+--
 -- [@ type_id       :: 'HId_t'             @]    Datatype ID for the elements stored in ELEM.
--- 
+--
 -- [@ ndim          :: 'CUInt'             @]    Number of dimensions for POINT array
--- 
+--
 -- [@ point         :: 'InArray' 'HSize_t' @]    Array containing the location of the element within the original dataspace.
--- 
+--
 -- [@ operator_data :: 'InOut' b           @]    Pointer to any user-defined data associated with the operation.
--- 
+--
 -- Return Values:
--- 
+--
 --  * Zero causes the iterator to continue, returning zero when all
 --    elements have been processed.
--- 
+--
 --  * Positive causes the iterator to immediately return that positive
 --    value, indicating short-circuit success.  The iterator can be
 --    restarted at the next element.
--- 
+--
 --  * Negative causes the iterator to immediately return that value,
 --    indicating failure. The iterator can be restarted at the next
 --    element.
--- 
+--
 -- > typedef herr_t (*H5D_operator_t)(void *elem, hid_t type_id, unsigned ndim,
 -- > 				 const hsize_t *point, void *operator_data);
 type H5D_operator_t a b = FunPtr (InOut a -> HId_t -> CUInt -> InArray HSize_t -> InOut b -> IO HErr_t)
 
 #if H5_VERSION_GE(1,8,11)
 
--- I don't see any documentation for these callback types in the HDF5 distribution 
+-- I don't see any documentation for these callback types in the HDF5 distribution
 -- (though I didn't look very hard, it might be there somewhere)
 
 -- Define the operator function pointer for H5Dscatter()
--- 
+--
 -- > typedef herr_t (*H5D_scatter_func_t)(void **src_buf/*out*/,
 -- >                                      size_t *src_buf_bytes_used/*out*/,
 -- >                                      void *op_data);
 type H5D_scatter_func_t a b = FunPtr (Out (Ptr a) -> Out CSize -> InOut b -> IO HErr_t)
 
 -- Define the operator function pointer for H5Dgather()
--- 
+--
 -- > typedef herr_t (*H5D_gather_func_t)(const void *dst_buf,
 -- >                                     size_t dst_buf_bytes_used, void *op_data);
 type H5D_gather_func_t a b = FunPtr (InArray a -> CSize -> InOut b -> IO HErr_t)
@@ -139,20 +145,20 @@ type H5D_gather_func_t a b = FunPtr (InArray a -> CSize -> InOut b -> IO HErr_t)
 -- datapoint as stored in the file ('type_id'), the size of the
 -- dataset ('space_id'), and other initial miscellaneous
 -- properties ('dcpl_id').
--- 
+--
 -- All arguments are copied into the dataset, so the caller is
 -- allowed to derive new types, data spaces, and creation
 -- parameters from the old ones and reuse them in calls to
 -- create other datasets.
--- 
+--
 -- On success, returns the object ID of the new dataset.  At this
 -- point, the dataset is ready to receive its raw data.  Attempting
 -- to read raw data from the dataset will probably return the fill
 -- value.  The dataset should be closed when the caller is no longer
 -- interested in it.
--- 
+--
 -- On failure, returns a negative value.
--- 
+--
 -- > hid_t H5Dcreate2(hid_t loc_id, const char *name, hid_t type_id,
 -- >     hid_t space_id, hid_t lcpl_id, hid_t dcpl_id, hid_t dapl_id);
 #ccall H5Dcreate2, <hid_t> -> CString -> <hid_t> -> <hid_t> -> <hid_t> -> <hid_t> -> <hid_t> -> IO <hid_t>
@@ -163,24 +169,24 @@ type H5D_gather_func_t a b = FunPtr (InArray a -> CSize -> InOut b -> IO HErr_t)
 -- datapoint as stored in the file ('type_id'), the size of the
 -- dataset ('space_id'), and other initial miscellaneous
 -- properties ('dcpl_id').
--- 
+--
 -- All arguments are copied into the dataset, so the caller is
 -- allowed to derive new types, data spaces, and creation
 -- parameters from the old ones and reuse them in calls to
 -- create other datasets.
--- 
+--
 -- The resulting ID should be linked into the file with
 -- 'h5o_link' or it will be deleted when closed.
--- 
+--
 -- On success returns the object ID of the new dataset.  At this
 -- point, the dataset is ready to receive its raw data.  Attempting
 -- to read raw data from the dataset will probably return the fill
 -- value.  The dataset should be linked into the group hierarchy before
--- being closed or it will be deleted.  The dataset should be closed 
+-- being closed or it will be deleted.  The dataset should be closed
 -- when the caller is no longer interested in it.
--- 
+--
 -- On failure, returns a negative value.
--- 
+--
 -- > hid_t H5Dcreate_anon(hid_t file_id, hid_t type_id, hid_t space_id,
 -- >     hid_t plist_id, hid_t dapl_id);
 #ccall H5Dcreate_anon, <hid_t> -> <hid_t> -> <hid_t> -> <hid_t> -> <hid_t> -> IO <hid_t>
@@ -215,26 +221,26 @@ type H5D_gather_func_t a b = FunPtr (InArray a -> CSize -> InOut b -> IO HErr_t)
 #ccall H5Dget_space, <hid_t> -> IO <hid_t>
 
 -- |Gets the status of data space allocation.
--- 
+--
 -- Returns non-negative on success / negative on failure
--- 
+--
 -- > herr_t H5Dget_space_status(hid_t dset_id, H5D_space_status_t *allocation);
 #ccall H5Dget_space_status, <hid_t> -> Out H5D_space_status_t -> IO <herr_t>
 
 -- |Gets a copy of the file datatype for a dataset.
--- 
--- On success, returns the ID for a copy of the datatype.  The data type 
+--
+-- On success, returns the ID for a copy of the datatype.  The data type
 -- should be released by calling 'h5t_close'.
 -- On failure, returns a negative value.
--- 
+--
 -- > hid_t H5Dget_type(hid_t dset_id);
 #ccall H5Dget_type, <hid_t> -> IO <hid_t>
 
 -- |Gets a copy of the dataset creation property list.
--- 
+--
 -- On success, returns the ID for a copy of the dataset creation
 -- property list.  The template should be released by calling 'h5p_close'.
--- 
+--
 -- > hid_t H5Dget_create_plist(hid_t dset_id);
 #ccall H5Dget_create_plist, <hid_t> -> IO <hid_t>
 
@@ -269,7 +275,7 @@ type H5D_gather_func_t a b = FunPtr (InArray a -> CSize -> InOut b -> IO HErr_t)
 -- chunks times the chunk size.
 --
 -- On success, returns the amount of storage space allocated for the
--- dataset, not counting meta data. The return value may be zero if 
+-- dataset, not counting meta data. The return value may be zero if
 -- no data has been stored.
 --
 -- On failure, returns zero.
@@ -278,7 +284,7 @@ type H5D_gather_func_t a b = FunPtr (InArray a -> CSize -> InOut b -> IO HErr_t)
 #ccall H5Dget_storage_size, <hid_t> -> IO <hsize_t>
 
 -- |Returns the address of dataset in file, or 'hADDR_UNDEF' on failure.
--- 
+--
 -- > haddr_t H5Dget_offset(hid_t dset_id);
 #ccall H5Dget_offset, <hid_t> -> IO <haddr_t>
 
@@ -288,20 +294,20 @@ type H5D_gather_func_t a b = FunPtr (InArray a -> CSize -> InOut b -> IO HErr_t)
 -- converted from their file type to the 'mem_type_id' specified.
 -- Additional miscellaneous data transfer properties can be
 -- passed to this function with the 'plist_id' argument.
--- 
+--
 -- The 'file_space_id' can be the constant 'h5s_ALL' which indicates
 -- that the entire file data space is to be referenced.
--- 
+--
 -- The 'mem_space_id' can be the constant 'h5s_ALL' in which case
 -- the memory data space is the same as the file data space
 -- defined when the dataset was created.
--- 
+--
 -- The number of elements in the memory data space must match
 -- the number of elements in the file data space.
--- 
+--
 -- The 'plist_id' can be the constant 'h5p_DEFAULT' in which
 -- case the default data transfer properties are used.
--- 
+--
 -- Returns non-negative on success / negative on failure.
 --
 -- > herr_t H5Dread(hid_t dset_id, hid_t mem_type_id, hid_t mem_space_id,
@@ -315,22 +321,22 @@ type H5D_gather_func_t a b = FunPtr (InArray a -> CSize -> InOut b -> IO HErr_t)
 -- file datatype.  Additional miscellaneous data transfer
 -- properties can be passed to this function with the
 -- 'plist_id' argument.
--- 
+--
 -- The 'file_space_id' can be the constant 'h5s_ALL' which indicates
 -- that the entire file data space is to be referenced.
--- 
+--
 -- The 'mem_space_id' can be the constant 'h5s_ALL' in which case
 -- the memory data space is the same as the file data space
 -- defined when the dataset was created.
--- 
+--
 -- The number of elements in the memory data space must match
 -- the number of elements in the file data space.
--- 
+--
 -- The 'plist_id' can be the constant 'h5p_DEFAULT' in which
 -- case the default data transfer properties are used.
--- 
+--
 -- Returns non-negative on success / negative on failure.
--- 
+--
 -- > herr_t H5Dwrite(hid_t dset_id, hid_t mem_type_id, hid_t mem_space_id,
 -- >        hid_t file_space_id, hid_t plist_id, const void *buf);
 #ccall H5Dwrite, <hid_t> -> <hid_t> -> <hid_t> -> <hid_t> -> <hid_t> -> InArray a -> IO <herr_t>
@@ -343,20 +349,20 @@ type H5D_gather_func_t a b = FunPtr (InArray a -> CSize -> InOut b -> IO HErr_t)
 -- if the iteration is interrupted (by the 'H5D_operator_t' function
 -- returning non-zero) in the \"middle\" of the iteration and may be
 -- re-started by the user where it left off.
--- 
+--
 -- NOTE: Until \"subtracting\" elements from a selection is implemented,
 --     the selection is not modified.
 --
 -- Parameters:
--- 
+--
 -- [@ buf           :: 'InOut' a            @]    Pointer to the buffer in memory containing the elements to iterate over.
--- 
+--
 -- [@ type_id       :: 'HId_t'              @]    Datatype ID for the elements stored in 'buf'.
--- 
+--
 -- [@ space_id      :: 'HId_t'              @]    Dataspace ID for 'buf', also contains the selection to iterate over.
--- 
+--
 -- [@ op            :: 'H5D_operator_t' a b @]    Function pointer to the routine to be called for each element in 'buf' iterated over.
--- 
+--
 -- [@ operator_data :: 'InOut' b            @]    Pointer to any user-defined data associated with the operation.
 --
 -- Returns the return value of the last operator if it was non-zero,
@@ -400,17 +406,17 @@ type H5D_gather_func_t a b = FunPtr (InArray a -> CSize -> InOut b -> IO HErr_t)
 -- |Fill a selection in memory with a value.
 -- Use the selection in the dataspace to fill elements in a memory buffer.
 -- If "fill" parameter is NULL, uses all zeros as fill value
--- 
+--
 -- Parameters:
--- 
+--
 -- [@ fill         :: 'In' a    @]  Pointer to fill value to use
 -- [@ fill_type_id :: 'HId_t'   @]  Datatype of the fill value
 -- [@ buf          :: 'InOut' b @]  Memory buffer to fill selection within
 -- [@ buf_type_id  :: 'HId_t'   @]  Datatype of the elements in buffer
 -- [@ space_id     :: 'HId_t'   @]  Dataspace describing memory buffer & containing selection to use.
--- 
+--
 -- Returns non-negative on success / negative on failure.
--- 
+--
 -- > herr_t H5Dfill(const void *fill, hid_t fill_type, void *buf,
 -- >         hid_t buf_type, hid_t space);
 #ccall H5Dfill, In a -> <hid_t> -> InOutArray b -> <hid_t> -> <hid_t> -> IO <herr_t>
@@ -431,7 +437,7 @@ type H5D_gather_func_t a b = FunPtr (InArray a -> CSize -> InOut b -> IO HErr_t)
 -- scattered is specified by type_id.
 --
 -- Returns non-negative on success, negative on failure
--- 
+--
 -- > herr_t H5Dscatter(H5D_scatter_func_t op, void *op_data, hid_t type_id,
 -- >     hid_t dst_space_id, void *dst_buf);
 #ccall H5Dscatter, H5D_scatter_func_t a b -> InOut b -> <hid_t> -> <hid_t> -> OutArray a -> IO <herr_t>
@@ -441,9 +447,9 @@ type H5D_gather_func_t a b = FunPtr (InArray a -> CSize -> InOut b -> IO HErr_t)
 -- The dimensions of src_buf and the selection to be gathered
 -- are specified by the dataspace src_space_id.  The type of
 -- the data to be gathered is specified by type_id.
--- 
+--
 -- Returns non-negative on success, negative on failure
--- 
+--
 -- > herr_t H5Dgather(hid_t src_space_id, const void *src_buf, hid_t type_id,
 -- >     size_t dst_buf_size, void *dst_buf, H5D_gather_func_t op, void *op_data);
 #ccall H5Dgather, <hid_t> -> InArray a -> <hid_t> -> <size_t> -> OutArray a -> H5D_gather_func_t a b -> InOut b -> IO <herr_t>
@@ -452,9 +458,9 @@ type H5D_gather_func_t a b = FunPtr (InArray a -> CSize -> InOut b -> IO HErr_t)
 
 -- |Prints various information about a dataset.  This function is not to be
 -- documented in the API at this time.
--- 
+--
 -- Returns non-negative on success, negative on failure
--- 
+--
 -- > herr_t H5Ddebug(hid_t dset_id);
 #ccall H5Ddebug, <hid_t> -> IO <herr_t>
 
@@ -467,22 +473,22 @@ type H5D_gather_func_t a b = FunPtr (InArray a -> CSize -> InOut b -> IO HErr_t)
 -- datapoint as stored in the file ('type_id'), the size of the
 -- dataset ('space_id'), and other initial miscellaneous
 -- properties ('dcpl_id').
--- 
+--
 -- All arguments are copied into the dataset, so the caller is
 -- allowed to derive new types, data spaces, and creation
 -- parameters from the old ones and reuse them in calls to
 -- create other datasets.
--- 
+--
 -- On success, returns the object ID of the new dataset.  At this
 -- point, the dataset is ready to receive its raw data.  Attempting
 -- to read raw data from the dataset will probably return the fill
 -- value.  The dataset should be closed when the caller is no longer
 -- interested in it.
--- 
+--
 -- On failure, returns a negative value.
--- 
+--
 -- Note:  Deprecated in favor of 'h5d_create2'
--- 
+--
 -- > hid_t H5Dcreate1(hid_t file_id, const char *name, hid_t type_id,
 -- >     hid_t space_id, hid_t dcpl_id);
 #ccall H5Dcreate1, <hid_t> -> CString -> <hid_t> -> <hid_t> -> <hid_t> -> IO <hid_t>

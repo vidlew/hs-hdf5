@@ -5,14 +5,10 @@
 -- the file directly without being copied into system kernel
 -- buffer.  The main system supporting this feature is Linux.
 module Bindings.HDF5.Raw.H5FD.Direct where
-#strict_import
+-- #strict_import
 
-import System.IO.Unsafe (unsafePerformIO)
-
-import Bindings.HDF5.Raw.H5
 import Bindings.HDF5.Raw.H5I
 
-import Foreign.Ptr.Conventions
 
 #mangle_ident "H5FD_DIRECT"
 #ifdef H5_HAVE_DIRECT
@@ -33,12 +29,12 @@ import Foreign.Ptr.Conventions
 #num CBSIZE_DEF
 
 -- |Initialize this driver by registering the driver with the library.
--- 
+--
 -- > hid_t H5FD_direct_init(void);
 #ccall H5FD_direct_init, IO <hid_t>
 
 -- |Shut down the VFD.
--- 
+--
 -- > void H5FD_direct_term(void);
 #ccall H5FD_direct_term, IO ()
 

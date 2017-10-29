@@ -2,7 +2,11 @@ module Bindings.HDF5.Raw.H5AC where
 #include <bindings.h>
 #include <H5ACpublic.h>
 
-#strict_import
+-- #strict_import
+import Foreign.Storable
+import Foreign.C.Types
+import Foreign.Ptr
+import Foreign.Marshal.Array (peekArray,pokeArray)
 
 import Bindings.HDF5.Raw.H5
 import Bindings.HDF5.Raw.H5C
@@ -30,7 +34,7 @@ import Bindings.HDF5.Raw.H5C
 -- configuration options for metadata and raw data caches.
 --
 -- The fields of the structure are discussed individually below.
--- 
+--
 #starttype H5AC_cache_config_t
 
 -- |Integer field containing the version number of this version
@@ -42,18 +46,18 @@ import Bindings.HDF5.Raw.H5C
 -- |Boolean field used to enable and disable the default
 -- reporting function.  This function is invoked every time the
 -- automatic cache resize code is run, and reports on its activities.
--- 
+--
 -- This is a debugging function, and should normally be turned off.
 #field rpt_fcn_enabled,         <hbool_t>
 
 -- |Boolean field indicating whether the trace_file_name
 -- field should be used to open a trace file for the cache.
--- 
+--
 -- The trace file is a debuging feature that allow the capture of
 -- top level metadata cache requests for purposes of debugging and/or
 -- optimization.  This field should normally be set to FALSE, as
 -- trace file collection imposes considerable overhead.
--- 
+--
 -- This field should only be set to TRUE when the trace_file_name
 -- contains the full path of the desired trace file, and either
 -- there is no open trace file on the cache, or the close_trace_file
@@ -62,18 +66,18 @@ import Bindings.HDF5.Raw.H5C
 
 -- |Boolean field indicating whether the current trace
 -- file (if any) should be closed.
--- 
+--
 -- See the above comments on the open_trace_file field.  This field
 -- should be set to FALSE unless there is an open trace file on the
 -- cache that you wish to close.
 #field close_trace_file,        <hbool_t>
 
 -- |Full path of the trace file to be opened if the 'open_trace_file' field is TRUE.
--- 
+--
 -- In the parallel case, an ascii representation of the mpi rank of
 -- the process will be appended to the file name to yield a unique
 -- trace file name for each process.
--- 
+--
 -- The length of the path must not exceed 'h5ac__MAX_TRACE_FILE_NAME_LEN'
 -- characters.
 #array_field trace_file_name,   CChar
@@ -81,14 +85,14 @@ import Bindings.HDF5.Raw.H5C
 -- |Boolean field used to either report the current
 -- evictions enabled status of the cache, or to set the cache's
 -- evictions enabled status.
--- 
+--
 -- In general, the metadata cache should always be allowed to
 -- evict entries.  However, in some cases it is advantageous to
 -- disable evictions briefly, and thereby postpone metadata
 -- writes.  However, this must be done with care, as the cache
 -- can grow quickly.  If you do this, re-enable evictions as
 -- soon as possible and monitor cache size.
--- 
+--
 -- At present, evictions can only be disabled if automatic
 -- cache resizing is also disabled (that is, @( 'incr_mode' ==
 -- 'h5c_incr__off' ) && ( 'decr_mode' == 'h5c_decr__off' )@).  There
@@ -132,7 +136,7 @@ import Bindings.HDF5.Raw.H5C
 -- |Number of accesses on the cache over which to collect
 -- hit rate stats before running the automatic cache resize code,
 -- if it is enabled.
--- 
+--
 -- At the end of an epoch, we discard prior hit rate data and start
 -- collecting afresh.  The epoch_length must lie in the closed
 -- interval @['H5C__MIN_AR_EPOCH_LENGTH' .. 'H5C__MAX_AR_EPOCH_LENGTH']@.
@@ -141,13 +145,13 @@ import Bindings.HDF5.Raw.H5C
 -- |Instance of the 'H5C_cache_incr_mode' enumerated type whose
 -- value indicates how we determine whether the cache size should be
 -- increased.  At present there are two possible values:
--- 
+--
 -- * 'h5c_incr__off':
 --         Don't attempt to increase the size of the cache
 --         automatically.
 --         When this increment mode is selected, the remaining fields
 --         in the cache size increase section ar ignored.
--- 
+--
 -- * 'h5c_incr__threshold':
 --         Attempt to increase the size of the cache
 --         whenever the average hit rate over the last epoch drops
@@ -156,7 +160,7 @@ import Bindings.HDF5.Raw.H5C
 --         Note that this attempt will fail if the cache is already
 --         at its maximum size, or if the cache is not already using
 --         all available space.
--- 
+--
 -- Note that you must set 'decr_mode' to 'h5c_incr__off' if you
 -- disable metadata cache entry evictions.
 #field incr_mode,               <H5C_cache_incr_mode>
@@ -167,7 +171,7 @@ import Bindings.HDF5.Raw.H5C
 -- 'size_increment'.  Note that cache size may not be incremented above
 -- 'max_size', and that the increment may be further restricted by the
 -- 'max_increment' field if it is enabled.
--- 
+--
 -- When enabled, this field must contain a value in the range [0.0, 1.0].
 -- Depending on the 'incr_mode' selected, it may also have to be less than
 -- 'upper_hr_threshold'.
@@ -176,7 +180,7 @@ import Bindings.HDF5.Raw.H5C
 -- |Double containing the multiplier used to derive the new
 -- cache size from the old if a cache size increment is triggered.
 -- The increment must be greater than 1.0, and should not exceed 2.0.
--- 
+--
 -- The new cache size is obtained my multiplying the current max cache
 -- size by the increment, and then clamping to max_size and to stay
 -- within the max_increment as necessary.
@@ -195,18 +199,18 @@ import Bindings.HDF5.Raw.H5C
 -- type whose value indicates whether and by which algorithm we should
 -- make flash increases in the size of the cache to accomodate insertion
 -- of large entries and large increases in the size of a single entry.
--- 
+--
 -- The addition of the flash increment mode was occasioned by performance
 -- problems that appear when a local heap is increased to a size in excess
 -- of the current cache size.  While the existing re-size code dealt with
 -- this eventually, performance was very bad for the remainder of the
 -- epoch.
--- 
+--
 -- At present, there are two possible values for the 'flash_incr_mode':
--- 
+--
 -- * 'h5c_flash_incr__off':  Don't perform flash increases in the size of
 --         the cache.
--- 
+--
 -- * 'h5c_flash_incr__add_space':  Let @x@ be either the size of a newly
 --         newly inserted entry, or the number of bytes by which the
 --         size of an existing entry has been increased.
@@ -214,11 +218,11 @@ import Bindings.HDF5.Raw.H5C
 --         increase the current maximum cache size by @x * flash_multiple@
 --         less any free space in the cache, and start a new epoch.  For
 --         now at least, pay no attention to the maximum increment.
--- 
+--
 -- In both of the above cases, the flash increment pays no attention to
 -- the maximum increment (at least in this first incarnation), but DOES
 -- stay within 'max_size'.
--- 
+--
 -- With a little thought, it should be obvious that the above flash
 -- cache size increase algorithm is not sufficient for all circumstances.
 -- For example, suppose the user round robins through
@@ -227,7 +231,7 @@ import Bindings.HDF5.Raw.H5C
 -- the max cache size to at least double to maintain acceptable
 -- performance, however the above flash increment algorithm will not be
 -- triggered.
--- 
+--
 -- Hopefully, the add space algorithms detailed above will be sufficient
 -- for the performance problems encountered to date.  However, we should
 -- expect to revisit the issue.
@@ -248,16 +252,16 @@ import Bindings.HDF5.Raw.H5C
 -- |Instance of the 'H5C_cache_decr_mode' enumerated type whose
 -- value indicates how we determine whether the cache size should be
 -- decreased.  At present there are four possibilities.
--- 
+--
 -- * 'h5c_decr__off':  Don't attempt to decrease the size of the cache
 --         automatically. When this increment mode is selected, the remaining
 --         fields in the cache size decrease section are ignored.
--- 
+--
 -- * 'h5c_decr__threshold': Attempt to decrease the size of the cache
 --         whenever the average hit rate over the last epoch rises
 --         above the value supplied in the upper_hr_threshold
 --         field.
--- 
+--
 -- * 'h5c_decr__age_out':  At the end of each epoch, search the cache for
 --         entries that have not been accessed for at least the number
 --         of epochs specified in the 'epochs_before_eviction' field, and
@@ -265,30 +269,30 @@ import Bindings.HDF5.Raw.H5C
 --         is then decreased to match the new actual cache size.  However,
 --         this reduction may be modified by the 'min_size', the
 --         'max_decrement', and/or the 'empty_reserve'.
--- 
+--
 -- * 'h5c_decr__age_out_with_threshold':  Same as 'age_out', but we only
 --         attempt to reduce the cache size when the hit rate observed
 --         over the last epoch exceeds the value provided in the
 --         'upper_hr_threshold' field.
--- 
+--
 -- Note that you must set 'decr_mode' to 'h5c_decr__off' if you
 -- disable metadata cache entry evictions.
 #field decr_mode,               <H5C_cache_decr_mode>
 
 -- |Upper hit rate threshold.  The use of this field varies according to
 -- the current 'decr_mode':
--- 
+--
 -- * 'h5c_decr__off' or 'h5c_decr__age_out':  The value of this field is
 --         ignored.
--- 
+--
 -- * 'h5c_decr__threshold':  If the hit rate exceeds this threshold in any
 --         epoch, attempt to decrement the cache size by 'size_decrement'.
--- 
+--
 --         Note that cache size may not be decremented below 'min_size'.
--- 
+--
 --         Note also that if the 'upper_threshold' is 1.0, the cache size
 --         will never be reduced.
--- 
+--
 -- * 'h5c_decr__age_out_with_threshold':  If the hit rate exceeds this
 --         threshold in any epoch, attempt to reduce the cache size
 --         by evicting entries that have not been accessed for more
@@ -317,7 +321,7 @@ import Bindings.HDF5.Raw.H5C
 -- TODO: figure out where H5C__MAX_EPOCH_MARKERS comes from
 -- |Integer field used in H5C_decr__age_out and
 -- 'h5c_decr__age_out_with_threshold' decrement modes.
--- 
+--
 -- This field contains the number of epochs an entry must remain
 -- unaccessed before it is evicted in an attempt to reduce the
 -- cache size.  If applicable, this field must lie in the range
@@ -333,7 +337,7 @@ import Bindings.HDF5.Raw.H5C
 -- amounts in the 'h5c_decr__age_out' and 'h5c_decr__age_out_with_threshold'
 -- modes, this field allows one to require that any cache size
 -- reductions leave the specified fraction of unused space in the cache.
--- 
+--
 -- The value of this field must be in the range [0.0, 1.0].  I would
 -- expect typical values to be in the range of 0.01 to 0.1.
 #field empty_reserve,           CDouble
@@ -341,7 +345,7 @@ import Bindings.HDF5.Raw.H5C
 -- |Threshold of dirty byte creation used to
 -- synchronize updates between caches. (See above for outline and
 -- motivation.)
--- 
+--
 -- This value MUST be consistant across all processes accessing the
 -- file.  This field is ignored unless HDF5 has been compiled for
 -- parallel.
@@ -361,47 +365,47 @@ import Bindings.HDF5.Raw.H5C
 
 #if H5_VERSION_GE(1,8,6)
 
--- |When 'metadata_write_strategy' is set to this value, only process 
--- zero is allowed to write dirty metadata to disk.  All other 
+-- |When 'metadata_write_strategy' is set to this value, only process
+-- zero is allowed to write dirty metadata to disk.  All other
 -- processes must retain dirty metadata until they are informed at
 -- a sync point that the dirty metadata in question has been written
 -- to disk.
--- 
+--
 -- When the sync point is reached (or when there is a user generated
 -- flush), process zero flushes sufficient entries to bring it into
 -- complience with its min clean size (or flushes all dirty entries in
--- the case of a user generated flush), broad casts the list of 
+-- the case of a user generated flush), broad casts the list of
 -- entries just cleaned to all the other processes, and then exits
 -- the sync point.
--- 
+--
 -- Upon receipt of the broadcast, the other processes mark the indicated
 -- entries as clean, and leave the sync point as well.
 #num H5AC_METADATA_WRITE_STRATEGY__PROCESS_0_ONLY
 
 -- |In the distributed metadata write strategy, process zero still makes
--- the decisions as to what entries should be flushed, but the actual 
--- flushes are distributed across the processes in the computation to 
+-- the decisions as to what entries should be flushed, but the actual
+-- flushes are distributed across the processes in the computation to
 -- the extent possible.
--- 
+--
 -- In this strategy, when a sync point is triggered (either by dirty
 -- metadata creation or manual flush), all processes enter a barrier.
--- 
+--
 -- On the other side of the barrier, process 0 constructs an ordered
 -- list of the entries to be flushed, and then broadcasts this list
 -- to the caches in all the processes.
--- 
+--
 -- All processes then scan the list of entries to be flushed, flushing
 -- some, and marking the rest as clean.  The algorithm for this purpose
--- ensures that each entry in the list is flushed exactly once, and 
+-- ensures that each entry in the list is flushed exactly once, and
 -- all are marked clean in each cache.
--- 
+--
 -- Note that in the case of a flush of the cache, no message passing
--- is necessary, as all processes have the same list of dirty entries, 
--- and all of these entries must be flushed.  Thus in this case it is 
--- sufficient for each process to sort its list of dirty entries after 
--- leaving the initial barrier, and use this list as if it had been 
+-- is necessary, as all processes have the same list of dirty entries,
+-- and all of these entries must be flushed.  Thus in this case it is
+-- sufficient for each process to sort its list of dirty entries after
+-- leaving the initial barrier, and use this list as if it had been
 -- received from process zero.
--- 
+--
 -- To avoid possible messages from the past/future, all caches must
 -- wait until all caches are done before leaving the sync point.
 #num H5AC_METADATA_WRITE_STRATEGY__DISTRIBUTED

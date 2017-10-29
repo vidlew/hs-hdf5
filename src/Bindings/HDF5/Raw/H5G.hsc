@@ -2,14 +2,19 @@
 #include <H5Gpublic.h>
 
 module Bindings.HDF5.Raw.H5G where
-#strict_import
+-- #strict_import
+import Foreign.Storable
+import Foreign.Ptr
+import Foreign.C.Types
+import Foreign.C.String (CString)
+import Data.Int
+import Foreign.Marshal.Array (peekArray,pokeArray)
 
 import Bindings.HDF5.Raw.H5
 
 import Bindings.HDF5.Raw.H5I
 import Bindings.HDF5.Raw.H5L
 import Bindings.HDF5.Raw.H5O
-import Bindings.HDF5.Raw.H5T
 
 import Foreign.Ptr.Conventions
 
@@ -55,15 +60,15 @@ import Foreign.Ptr.Conventions
 -- created with the 'lcpl_id'.
 --
 -- Parameters:
--- 
+--
 -- [@ loc_id  :: 'HId_t'   @]   File or group identifier
--- 
+--
 -- [@ name    :: 'CString' @]   Absolute or relative name of the new group
--- 
+--
 -- [@ lcpl_id :: 'HId_t'   @]   Property list for link creation
--- 
+--
 -- [@ gcpl_id :: 'HId_t'   @]   Property list for group creation
--- 
+--
 -- [@ gapl_id :: 'HId_t'   @]   Property list for group access
 --
 -- On success, returns the object ID of a new, empty group open for
@@ -77,26 +82,26 @@ import Foreign.Ptr.Conventions
 -- |Creates a new group relative to 'loc_id', giving it the
 -- specified creation property list 'gcpl_id' and access
 -- property list 'gapl_id'.
--- 
+--
 -- The resulting ID should be linked into the file with
 -- 'h5o_link' or it will be deleted when closed.
--- 
+--
 -- Given the default setting, 'h5g_create_anon' followed by
 -- 'h5o_link' will have the same function as 'h5g_create2'.
--- 
--- Parameters: 
--- 
+--
+-- Parameters:
+--
 -- [@ loc_id  :: 'HId_t'   @] File or group identifier
--- 
+--
 -- [@ name    :: 'CString' @] Absolute or relative name of the new group
--- 
+--
 -- [@ gcpl_id :: 'HId_t'   @] Property list for group creation
--- 
+--
 -- [@ gapl_id :: 'HId_t'   @] Property list for group access
 --
 -- Example:  To create missing groups \"A\" and \"B01\" along the given path
 -- \"/A/B01/grp\" (TODO: translate to Haskell):
--- 
+--
 -- > hid_t create_id = H5Pcreate(H5P_GROUP_CREATE);
 -- > int   status = H5Pset_create_intermediate_group(create_id, TRUE);
 -- > hid_t gid = H5Gcreate_anon(file_id, "/A/B01/grp", create_id, H5P_DEFAULT);
@@ -121,33 +126,33 @@ import Foreign.Ptr.Conventions
 #ccall H5Gopen2, <hid_t> -> CString -> <hid_t> -> IO <hid_t>
 
 -- |Returns a copy of the group creation property list.
--- 
+--
 -- On success, returns the ID for a copy of the group creation
 -- property list.  The property list ID should be released by
 -- calling 'h5p_close'.
--- 
+--
 -- > hid_t H5Gget_create_plist(hid_t group_id);
 #ccall H5Gget_create_plist, <hid_t> -> IO <hid_t>
 
 -- |Retrieve information about a group.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Gget_info(hid_t loc_id, H5G_info_t *ginfo);
 #ccall H5Gget_info, <hid_t> -> Out <H5G_info_t> -> IO <herr_t>
 
 -- |Retrieve information about a group.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Gget_info_by_name(hid_t loc_id, const char *name, H5G_info_t *ginfo,
 -- >     hid_t lapl_id);
 #ccall H5Gget_info_by_name, <hid_t> -> CString -> Out <H5G_info_t> -> <hid_t> -> IO <herr_t>
 
 -- |Retrieve information about a group, according to the order of an index.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Gget_info_by_idx(hid_t loc_id, const char *group_name,
 -- >     H5_index_t idx_type, H5_iter_order_t order, hsize_t n, H5G_info_t *ginfo,
 -- >     hid_t lapl_id);
@@ -157,7 +162,7 @@ import Foreign.Ptr.Conventions
 -- valid for accessing the group.
 --
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Gclose(hid_t group_id);
 #ccall H5Gclose, <hid_t> -> IO <herr_t>
 
@@ -210,7 +215,7 @@ type H5G_link_t = H5L_type_t
 #newtype_const H5G_obj_t, H5G_RESERVED_7
 
 -- |Type of 'h5g_iterate' operator
--- 
+--
 -- > typedef herr_t (*H5G_iterate_t)(hid_t group, const char *name, void *op_data);
 type H5G_iterate_t a = FunPtr (HId_t -> CString -> InOut a -> IO HErr_t)
 
@@ -243,7 +248,7 @@ type H5G_iterate_t a = FunPtr (HId_t -> CString -> InOut a -> IO HErr_t)
 -- |Creates a new group relative to 'loc_id' and gives it the
 -- specified 'name'.  The group is opened for write access
 -- and it's object ID is returned.
--- 
+--
 -- The optional 'size_hint' specifies how much file space to
 -- reserve to store the names that will appear in this
 -- group. If a non-positive value is supplied for the 'size_hint'
@@ -260,48 +265,48 @@ type H5G_iterate_t a = FunPtr (HId_t -> CString -> InOut a -> IO HErr_t)
 
 -- |Opens an existing group for modification.  When finished,
 -- call 'h5g_close' to close it and release resources.
--- 
+--
 -- Note:  Deprecated in favor of 'h5g_open2'
--- 
+--
 -- On success, returns the Object ID of the group.
 -- On failure, returns a negative value.
--- 
+--
 -- > hid_t H5Gopen1(hid_t loc_id, const char *name);
 #ccall H5Gopen1, <hid_t> -> CString -> IO <hid_t>
 
 -- |Creates a link between two existing objects.  The new
 -- APIs to do this are 'h5l_create_hard' and 'h5l_create_soft'.
--- 
+--
 -- > herr_t H5Glink(hid_t cur_loc_id, H5G_link_t type, const char *cur_name,
 -- >     const char *new_name);
 #ccall H5Glink, <hid_t> -> <H5G_link_t> -> CString -> CString -> IO <herr_t>
 
 -- |Creates a link between two existing objects.  The new
 -- APIs to do this are 'h5l_create_hard' and 'h5l_create_soft'.
--- 
+--
 -- herr_t H5Glink2(hid_t cur_loc_id, const char *cur_name, H5G_link_t type,
 --     hid_t new_loc_id, const char *new_name);
 #ccall H5Glink2, <hid_t> -> CString -> <H5G_link_t> -> <hid_t> -> CString -> IO <herr_t>
 
 -- |Moves and renames a link.  The new API to do this is 'h5l_move'.
--- 
+--
 -- > herr_t H5Gmove(hid_t src_loc_id, const char *src_name,
 -- >     const char *dst_name);
 #ccall H5Gmove, <hid_t> -> CString -> CString -> IO <herr_t>
 
 -- |Moves and renames a link.  The new API to do this is 'h5l_move'.
--- 
+--
 -- > herr_t H5Gmove2(hid_t src_loc_id, const char *src_name, hid_t dst_loc_id,
 -- >     const char *dst_name);
 #ccall H5Gmove2, <hid_t> -> CString -> <hid_t> -> CString -> IO <herr_t>
 
 -- |Removes a link.  The new API is 'h5l_delete' / 'h5l_delete_by_idx'.
--- 
+--
 -- > herr_t H5Gunlink(hid_t loc_id, const char *name);
 #ccall H5Gunlink, <hid_t> -> CString -> IO <herr_t>
 
 -- |Retrieve's a soft link's data.  The new API is 'h5l_get_val' / 'h5l_get_val_by_idx'.
--- 
+--
 -- > herr_t H5Gget_linkval(hid_t loc_id, const char *name, size_t size,
 -- >     char *buf/*out*/);
 #ccall H5Gget_linkval, <hid_t> -> CString -> <size_t> -> OutArray a -> IO <herr_t>
@@ -310,11 +315,11 @@ type H5G_iterate_t a = FunPtr (HId_t -> CString -> InOut a -> IO HErr_t)
 -- should be a null terminated string.  An object can have only
 -- one comment at a time.  Passing 'nullPtr' for the 'comment' argument
 -- will remove the comment property from the object.
--- 
+--
 -- Note:  Deprecated in favor of 'h5o_set_comment' / 'h5o_set_comment_by_name'
--- 
+--
 -- Returns non-negative on success / negative on failure
--- 
+--
 -- > herr_t H5Gset_comment(hid_t loc_id, const char *name, const char *comment);
 #ccall H5Gset_comment, <hid_t> -> CString -> CString -> IO <herr_t>
 
@@ -343,17 +348,17 @@ type H5G_iterate_t a = FunPtr (HId_t -> CString -> InOut a -> IO HErr_t)
 -- are processed. The operator is passed a group ID for the
 -- group being iterated, a member name, and 'op_data' for each
 -- member.
--- 
+--
 -- Note:	Deprecated in favor of 'h5l_iterate'
--- 
+--
 -- Returns the return value of the first operator that
 -- returns non-zero, or zero if all members were
 -- processed with no operator returning non-zero.
--- 
+--
 -- Returns negative if something goes wrong within the
 -- library, or the negative value returned by one
 -- of the operators.
--- 
+--
 -- > herr_t H5Giterate(hid_t loc_id, const char *name, int *idx,
 -- >         H5G_iterate_t op, void *op_data);
 #ccall H5Giterate, <hid_t> -> CString -> InOut CInt -> H5G_iterate_t a -> InOut a -> IO <herr_t>
@@ -362,9 +367,9 @@ type H5G_iterate_t a = FunPtr (HId_t -> CString -> InOut a -> IO HErr_t)
 -- all B-tree leaves and sum up total number of group members.
 --
 -- Note:  Deprecated in favor of 'h5g_get_info'
--- 
+--
 -- Returns non-negative on success, negative on failure
--- 
+--
 -- > herr_t H5Gget_num_objs(hid_t loc_id, hsize_t *num_objs);
 #ccall H5Gget_num_objs, <hid_t> -> Out <hsize_t> -> IO <herr_t>
 
@@ -390,22 +395,22 @@ type H5G_iterate_t a = FunPtr (HId_t -> CString -> InOut a -> IO HErr_t)
 -- is unchanged and the function returns a negative value.
 -- If a zero is returned for the name's length, then there is no name
 -- associated with the ID.
--- 
+--
 -- Note:  Deprecated in favor of 'h5l_get_name_by_idx'
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > ssize_t H5Gget_objname_by_idx(hid_t loc_id, hsize_t idx, char* name,
 -- >     size_t size);
 #ccall H5Gget_objname_by_idx, <hid_t> -> <hsize_t> -> OutArray CChar -> <size_t> -> IO <ssize_t>
 
 -- |Returns the type of objects in the group by giving index.
--- 
+--
 -- Note:  Deprecated in favor of 'h5l_get_info' / 'h5o_get_info'
--- 
+--
 -- Returns 'h5g_GROUP', 'h5g_DATASET', or 'h5g_TYPE' on success, or
 -- 'h5g_UNKNOWN' on failure.
--- 
+--
 -- > H5G_obj_t H5Gget_objtype_by_idx(hid_t loc_id, hsize_t idx);
 #ccall H5Gget_objtype_by_idx, <hid_t> -> <hsize_t> -> IO <H5G_obj_t>
 

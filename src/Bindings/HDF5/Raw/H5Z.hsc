@@ -3,7 +3,13 @@
 #include <H5Zpublic.h>
 
 module Bindings.HDF5.Raw.H5Z where
-#strict_import
+-- #strict_import
+import Foreign.C.Types
+import Foreign.C.String (CString)
+import Foreign.Ptr
+import Foreign.Storable
+import Data.Int
+import Data.Word
 
 import Bindings.HDF5.Raw.H5
 import Bindings.HDF5.Raw.H5I
@@ -13,7 +19,7 @@ import Foreign.Ptr.Conventions
 -- |Filter identifiers.  Values 0 through 255 are for filters defined by the
 -- HDF5 library.  Values 256 through 511 are available for testing new
 -- filters.  Subsequent values should be obtained from the HDF5 development
--- team at <mailto:hdf5dev@ncsa.uiuc.edu>.  These values will never change 
+-- team at <mailto:hdf5dev@ncsa.uiuc.edu>.  These values will never change
 -- because they appear in the HDF5 files.
 #newtype H5Z_filter_t, Eq
 
@@ -161,7 +167,7 @@ import Foreign.Ptr.Conventions
 #newtype_const H5Z_cb_return_t, H5Z_CB_NO
 
 -- |Filter callback function definition
--- 
+--
 -- > typedef H5Z_cb_return_t (*H5Z_filter_func_t)(H5Z_filter_t filter, void* buf,
 -- >        size_t buf_size, void* op_data);
 type H5Z_filter_func_t a b = FunPtr (H5Z_filter_t -> InOutArray a -> CSize -> InOut b -> IO H5Z_cb_return_t)
@@ -170,21 +176,21 @@ type H5Z_filter_func_t a b = FunPtr (H5Z_filter_t -> InOutArray a -> CSize -> In
 -- in the dataset creation property list are called
 -- with the dataset's dataset creation property list, the dataset's datatype and
 -- a dataspace describing a chunk (for chunked dataset storage).
--- 
+--
 -- The \"can_apply\" callback must determine if the combination of the dataset
 -- creation property list setting, the datatype and the dataspace represent a
 -- valid combination to apply this filter to.  For example, some cases of
 -- invalid combinations may involve the filter not operating correctly on
 -- certain datatypes (or certain datatype sizes), or certain sizes of the chunk
 -- dataspace.
--- 
+--
 -- The \"can_apply\" callback can be the NULL pointer, in which case, the library
 -- will assume that it can apply to any combination of dataset creation
 -- property list values, datatypes and dataspaces.
--- 
+--
 -- The \"can_apply\" callback returns positive a valid combination, zero for an
 -- invalid combination and negative for an error.
--- 
+--
 -- > typedef htri_t (*H5Z_can_apply_func_t)(hid_t dcpl_id, hid_t type_id, hid_t space_id);
 #callback H5Z_can_apply_func_t, <hid_t> -> <hid_t> -> <hid_t> -> IO <htri_t>
 
@@ -195,19 +201,19 @@ type H5Z_filter_func_t a b = FunPtr (H5Z_filter_t -> InOutArray a -> CSize -> In
 -- list passed in to H5Dcreate) and the datatype ID passed in to H5Dcreate
 -- (which is not copied and should not be modified) and a dataspace describing
 -- the chunk (for chunked dataset storage) (which should also not be modified).
--- 
+--
 -- The \"set_local\" callback must set any parameters that are specific to this
 -- dataset, based on the combination of the dataset creation property list
 -- values, the datatype and the dataspace.  For example, some filters perform
 -- different actions based on different datatypes (or datatype sizes) or
 -- different number of dimensions or dataspace sizes.
--- 
+--
 -- The \"set_local\" callback can be the NULL pointer, in which case, the library
 -- will assume that there are no dataset-specific settings for this filter.
--- 
+--
 -- The \"set_local\" callback must return non-negative on success and negative
 -- for an error.
--- 
+--
 -- > typedef herr_t (*H5Z_set_local_func_t)(hid_t dcpl_id, hid_t type_id, hid_t space_id);
 #callback H5Z_set_local_func_t, <hid_t> -> <hid_t> -> <hid_t> -> IO <herr_t>
 
@@ -215,16 +221,16 @@ type H5Z_filter_func_t a b = FunPtr (H5Z_filter_t -> InOutArray a -> CSize -> In
 -- client data array and size defined when the filter was added to the
 -- pipeline, the size in bytes of the data on which to operate, and pointers
 -- to a buffer and its allocated size.
--- 
+--
 -- The filter should store the result in the supplied buffer if possible,
 -- otherwise it can allocate a new buffer, freeing the original.  The
 -- allocated size of the new buffer should be returned through the 'buf_size'
 -- pointer and the new buffer through the BUF pointer.
--- 
+--
 -- The return value from the filter is the number of bytes in the output
 -- buffer.  If an error occurs then the function should return zero and leave
 -- all pointer arguments unchanged.
--- 
+--
 -- > typedef size_t (*H5Z_func_t)(unsigned int flags, size_t cd_nelmts,
 -- >        const unsigned int cd_values[], size_t nbytes,
 -- >        size_t *buf_size, void **buf);
@@ -261,27 +267,27 @@ type H5Z_func_t a = FunPtr (CUInt -> CSize -> InArray CUInt -> CSize -> InOut CS
 #stoptype
 
 -- |This function registers a new filter.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Zregister(const void *cls);
 #ccall H5Zregister, In <H5Z_class2_t> -> IO <herr_t>
 
 -- |This function unregisters a filter.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Zunregister(H5Z_filter_t id);
 #ccall H5Zunregister, <H5Z_filter_t> -> IO <herr_t>
 
 -- |Check if a filter is available
--- 
+--
 -- > htri_t H5Zfilter_avail(H5Z_filter_t id);
 #ccall H5Zfilter_avail, <H5Z_filter_t> -> IO <htri_t>
 
 -- |Gets information about a pipeline data filter and stores it
 -- in 'filter_config_flags'.
--- 
+--
 -- Returns non-negative on success, negative on failure.
 --
 -- > herr_t H5Zget_filter_info(H5Z_filter_t filter, unsigned int *filter_config_flags);

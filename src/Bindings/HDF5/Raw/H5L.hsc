@@ -2,7 +2,14 @@
 #include <H5Lpublic.h>
 
 module Bindings.HDF5.Raw.H5L where
-#strict_import
+-- #strict_import
+import Foreign.Storable
+import Foreign.Ptr
+import Foreign.C.Types
+import Data.Int
+import Data.Word
+import Foreign.C.String (CString)
+import Foreign.Marshal.Alloc (alloca)
 
 import Bindings.HDF5.Raw.H5
 import Bindings.HDF5.Raw.H5I
@@ -22,13 +29,13 @@ h5l_MAX_LINK_NAME_LEN = #const H5L_MAX_LINK_NAME_LEN
 #num H5L_LINK_CLASS_T_VERS
 
 -- |Link class types.
--- 
+--
 -- Values less than 64 are reserved for the HDF5 library's internal use.
 -- Values 64 to 255 are for "user-defined" link class types; these types are
 -- defined by HDF5 but their behavior can be overridden by users.
 -- Users who want to create new classes of links should contact the HDF5
 -- development team at <mailto:hdfhelp@ncsa.uiuc.edu>.
--- 
+--
 -- These values can never change because they appear in HDF5 files.
 #newtype H5L_type_t, Eq, Ord, Read
 
@@ -84,31 +91,31 @@ h5l_MAX_LINK_NAME_LEN = #const H5L_MAX_LINK_NAME_LEN
 -- * Callback prototypes for user-defined links
 
 -- |Link creation callback
--- 
+--
 -- > typedef herr_t (*H5L_create_func_t)(const char *link_name, hid_t loc_group,
 -- >     const void *lnkdata, size_t lnkdata_size, hid_t lcpl_id);
 type H5L_create_func_t a = FunPtr (CString -> HId_t -> Ptr a -> CSize -> HId_t -> IO HErr_t)
 
 -- |Callback for when the link is moved
--- 
+--
 -- > typedef herr_t (*H5L_move_func_t)(const char *new_name, hid_t new_loc,
 -- >     const void *lnkdata, size_t lnkdata_size);
 type H5L_move_func_t a = FunPtr (CString -> HId_t -> Ptr a -> CSize -> IO HErr_t)
 
 -- |Callback for when the link is copied
--- 
+--
 -- > typedef herr_t (*H5L_copy_func_t)(const char *new_name, hid_t new_loc,
 -- >     const void *lnkdata, size_t lnkdata_size);
 type H5L_copy_func_t a = FunPtr (CString -> HId_t -> Ptr a -> CSize -> IO HErr_t)
 
 -- |Callback during link traversal
--- 
+--
 -- > typedef herr_t (*H5L_traverse_func_t)(const char *link_name, hid_t cur_group,
 -- >     const void *lnkdata, size_t lnkdata_size, hid_t lapl_id);
 type H5L_traverse_func_t a = FunPtr (CString -> HId_t -> Ptr a -> CSize -> HId_t -> IO HErr_t)
 
 -- |Callback for when the link is deleted
--- 
+--
 -- > typedef herr_t (*H5L_delete_func_t)(const char *link_name, hid_t file,
 -- >     const void *lnkdata, size_t lnkdata_size);
 type H5L_delete_func_t a = FunPtr (CString -> HId_t -> Ptr a -> CSize -> IO HErr_t)
@@ -116,7 +123,7 @@ type H5L_delete_func_t a = FunPtr (CString -> HId_t -> Ptr a -> CSize -> IO HErr
 -- |Callback for querying the link
 --
 -- Returns the size of the buffer needed
--- 
+--
 -- > typedef ssize_t (*H5L_query_func_t)(const char *link_name, const void *lnkdata,
 -- >     size_t lnkdata_size, void *buf /*out*/, size_t buf_size);
 type H5L_query_func_t a b = FunPtr (CString -> Ptr a -> CSize -> Out b -> CSize -> IO CSSize)
@@ -154,7 +161,7 @@ type H5L_query_func_t a b = FunPtr (CString -> Ptr a -> CSize -> Out b -> CSize 
 
 
 -- |Prototype for 'h5l_iterate' / 'h5l_iterate_by_name' operator
--- 
+--
 -- > typedef herr_t (*H5L_iterate_t)(hid_t group, const char *name, const H5L_info_t *info,
 -- >     void *op_data);
 type H5L_iterate_t a = FunPtr (HId_t -> CString -> In H5L_info_t -> InOut a -> IO HErr_t)
@@ -165,7 +172,7 @@ type H5L_iterate_t a = FunPtr (HId_t -> CString -> In H5L_info_t -> InOut a -> I
 -- >     const char *parent_group_name, const char *child_file_name,
 -- >     const char *child_object_name, unsigned *acc_flags, hid_t fapl_id,
 -- >     void *op_data);
-type H5L_elink_traverse_t a = FunPtr (CString 
+type H5L_elink_traverse_t a = FunPtr (CString
     -> CString -> CString
     -> CString -> Ptr CUInt -> HId_t
     -> Ptr a -> IO HErr_t)
@@ -186,7 +193,7 @@ type H5L_elink_traverse_t a = FunPtr (CString
 -- |Creates an identical copy of a link with the same creation
 -- time and target.  The new link can have a different name
 -- and be in a different location than the original.
--- 
+--
 -- Returns non-negative on success, negative on failure.
 --
 -- > herr_t H5Lcopy(hid_t src_loc, const char *src_name, hid_t dst_loc,
@@ -206,15 +213,15 @@ type H5L_elink_traverse_t a = FunPtr (CString
 #ccall H5Lcreate_hard, <hid_t> -> CString -> <hid_t> -> CString -> <hid_t> -> <hid_t> -> IO <herr_t>
 
 -- |Creates a soft link from 'link_name' to 'link_target'.
--- 
+--
 -- 'link_target' can be anything and is interpreted at lookup
 -- time relative to the group which contains the final component
 -- of 'link_name'.  For instance, if 'link_target' is \"./foo\" and
 -- 'link_name' is \"./x/y/bar\" and a request is made for \"./x/y/bar\"
 -- then the actual object looked up is \"./x/y/./foo\".
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Lcreate_soft(const char *link_target, hid_t link_loc_id,
 -- >     const char *link_name, hid_t lcpl_id, hid_t lapl_id);
 #ccall H5Lcreate_soft, CString -> <hid_t> -> CString -> <hid_t> -> <hid_t> -> IO <herr_t>
@@ -225,23 +232,23 @@ type H5L_elink_traverse_t a = FunPtr (CString
 -- associated with the object will be reclaimed (but if the
 -- object is open, then the reclamation of the file space is
 -- delayed until all handles to the object are closed).
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Ldelete(hid_t loc_id, const char *name, hid_t lapl_id);
 #ccall H5Ldelete, <hid_t> -> CString -> <hid_t> -> IO <herr_t>
 
 -- |Removes the specified link from the group graph and
 -- decrements the link count for the object to which it
 -- points, according to the order within an index.
--- 
+--
 -- If the link count reaches zero then all file-space
 -- associated with the object will be reclaimed (but if the
 -- object is open, then the reclamation of the file space is
 -- delayed until all handles to the object are closed).
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Ldelete_by_idx(hid_t loc_id, const char *group_name,
 -- >     H5_index_t idx_type, H5_iter_order_t order, hsize_t n, hid_t lapl_id);
 #ccall H5Ldelete_by_idx, <hid_t> -> CString -> <H5_index_t> -> <H5_iter_order_t> -> <hsize_t> -> <hid_t> -> IO <herr_t>
@@ -250,11 +257,11 @@ type H5L_elink_traverse_t a = FunPtr (CString
 -- symbolic links, this is the path to which the link points,
 -- including the null terminator.  For user-defined links, it
 -- is the link buffer.
--- 
+--
 -- At most 'size' bytes are copied to the 'buf' result buffer.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Lget_val(hid_t loc_id, const char *name, void *buf/*out*/,
 -- >     size_t size, hid_t lapl_id);
 #ccall H5Lget_val, <hid_t> -> CString -> OutArray a -> <size_t> -> <hid_t> -> IO <herr_t>
@@ -263,33 +270,33 @@ type H5L_elink_traverse_t a = FunPtr (CString
 -- an index.  For symbolic links, this is the path to which the
 -- link points, including the null terminator.  For user-defined
 -- links, it is the link buffer.
--- 
+--
 -- At most 'size' bytes are copied to the 'buf' result buffer.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Lget_val_by_idx(hid_t loc_id, const char *group_name,
 -- >     H5_index_t idx_type, H5_iter_order_t order, hsize_t n,
 -- >     void *buf/*out*/, size_t size, hid_t lapl_id);
 #ccall H5Lget_val_by_idx, <hid_t> -> CString -> <H5_index_t> -> <H5_iter_order_t> -> <hsize_t> -> OutArray a -> CSize -> <hid_t> -> IO <herr_t>
 
 -- |Checks if a link of a given name exists in a group
--- 
+--
 -- > htri_t H5Lexists(hid_t loc_id, const char *name, hid_t lapl_id);
 #ccall H5Lexists, <hid_t> -> CString -> <hid_t> -> IO <htri_t>
 
 -- |Gets metadata for a link.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Lget_info(hid_t loc_id, const char *name,
 -- >     H5L_info_t *linfo /*out*/, hid_t lapl_id);
 #ccall H5Lget_info, <hid_t> -> CString -> Out <H5L_info_t> -> <hid_t> -> IO <herr_t>
 
 -- |Gets metadata for a link, according to the order within an index.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Lget_info_by_idx(hid_t loc_id, const char *group_name,
 -- >     H5_index_t idx_type, H5_iter_order_t order, hsize_t n,
 -- >     H5L_info_t *linfo /*out*/, hid_t lapl_id);
@@ -313,7 +320,7 @@ type H5L_elink_traverse_t a = FunPtr (CString
 --
 -- Same pattern of behavior as 'h5g_iterate'.
 --
--- Returns the return value of the first operator that returns non-zero, 
+-- Returns the return value of the first operator that returns non-zero,
 -- or zero if all members were processed with no operator returning non-zero.
 --
 -- Returns negative if something goes wrong within the library, or the
@@ -328,7 +335,7 @@ type H5L_elink_traverse_t a = FunPtr (CString
 --
 -- Same pattern of behavior as 'h5g_iterate'.
 --
--- Returns the return value of the first operator that returns non-zero, 
+-- Returns the return value of the first operator that returns non-zero,
 -- or zero if all members were processed with no operator returning non-zero.
 --
 -- Returns negative if something goes wrong within the library, or the
@@ -344,7 +351,7 @@ type H5L_elink_traverse_t a = FunPtr (CString
 -- each group are visited according to the order within the
 -- specified index (unless the specified index does not exist for
 -- a particular group, then the \"name\" index is used).
--- 
+--
 -- NOTE: Each _link_ reachable from the initial group will only be
 -- visited once.  However, because an object may be reached from
 -- more than one link, the visitation may call the application's
@@ -368,7 +375,7 @@ type H5L_elink_traverse_t a = FunPtr (CString
 -- each group are visited according to the order within the
 -- specified index (unless the specified index does not exist for
 -- a particular group, then the \"name\" index is used).
--- 
+--
 -- NOTE: Each _link_ reachable from the initial group will only be
 -- visited once.  However, because an object may be reached from
 -- more than one link, the visitation may call the application's
@@ -393,15 +400,15 @@ type H5L_elink_traverse_t a = FunPtr (CString
 --
 -- The format of the information pointed to by 'udata' is
 -- defined by the user. 'udata_size' holds the size of this buffer.
--- 
+--
 -- 'link_name' is interpreted relative to 'link_loc_id'.
--- 
+--
 -- The property list specified by 'lcpl_id' holds properties used
 -- to create the link.
--- 
+--
 -- The link class of the new link must already be registered
 -- with the library.
--- 
+--
 -- Returns non-negative on success, negative on failure.
 --
 -- > herr_t H5Lcreate_ud(hid_t link_loc_id, const char *link_name,
@@ -411,13 +418,13 @@ type H5L_elink_traverse_t a = FunPtr (CString
 
 -- |Registers a class of user-defined links, or changes the
 -- behavior of an existing class.
--- 
+--
 -- The link class passed in will override any existing link
 -- class for the specified link class ID. It must at least
 -- include a 'H5L_class_t' version (which should be
 -- 'h5l_LINK_CLASS_T_VERS'), a link class ID, and a traversal
 -- function.
--- 
+--
 -- Returns non-negative on success, negative on failure.
 --
 -- > herr_t H5Lregister(const H5L_class_t *cls);
@@ -425,7 +432,7 @@ type H5L_elink_traverse_t a = FunPtr (CString
 
 -- |Unregisters a class of user-defined links, preventing them
 -- from being traversed, queried, moved, etc.
--- 
+--
 -- A link class can be re-registered using 'h5l_register'.
 --
 -- Returns non-negative on success, negative on failure.
@@ -441,14 +448,14 @@ type H5L_elink_traverse_t a = FunPtr (CString
 
 -- |Given a buffer holding the \"link value\" from an external link,
 -- gets pointers to the information within the link value buffer.
--- 
+--
 -- External link link values contain some flags and
 -- two NULL-terminated strings, one after the other.
--- 
+--
 -- The 'flags' value will be filled in and 'filename' and
 -- 'obj_path' will be set to pointers within 'ext_linkval' (unless
 -- any of these values is NULL).
--- 
+--
 -- Using this function on strings that aren't external link
 -- 'udata' buffers can result in segmentation faults.
 --
@@ -473,4 +480,3 @@ type H5L_elink_traverse_t a = FunPtr (CString
 -- > herr_t H5Lcreate_external(const char *file_name, const char *obj_name,
 -- >     hid_t link_loc_id, const char *link_name, hid_t lcpl_id, hid_t lapl_id);
 #ccall H5Lcreate_external, CString -> CString -> <hid_t> -> CString -> <hid_t> -> <hid_t> -> IO <herr_t>
-

@@ -8,7 +8,8 @@
 -- I/O from this driver with I/O from other parts of the
 -- application to the same file).
 module Bindings.HDF5.Raw.H5FD.Sec2 where
-#strict_import
+-- #strict_import
+import Foreign.Ptr
 
 import System.IO.Unsafe (unsafePerformIO)
 
@@ -19,12 +20,12 @@ import Bindings.HDF5.Raw.H5I
     = unsafePerformIO (#mangle_ident "H5FD_sec2_init")
 
 -- |Initialize this driver by registering the driver with the library.
--- 
+--
 -- > hid_t H5FD_sec2_init(void);
 #ccall H5FD_sec2_init, IO <hid_t>
 
 -- |Shut down the VFD.
--- 
+--
 -- > void H5FD_sec2_term(void);
 #ccall H5FD_sec2_term, IO ()
 
@@ -33,4 +34,3 @@ import Bindings.HDF5.Raw.H5I
 --
 -- > herr_t H5Pset_fapl_sec2(hid_t fapl_id);
 #ccall H5Pset_fapl_sec2, <hid_t> -> IO <herr_t>
-

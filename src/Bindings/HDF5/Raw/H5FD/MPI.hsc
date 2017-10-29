@@ -4,15 +4,11 @@
 -- #include "H5FDmpiposix.h" : Not compatible with latest brew hdf
 
 module Bindings.HDF5.Raw.H5FD.MPI where
-#strict_import
+-- #strict_import
+import Data.Word
+import Foreign.Storable
 
-import System.IO.Unsafe (unsafePerformIO)
 
-import Bindings.HDF5.Raw.H5
-import Bindings.HDF5.Raw.H5F
-import Bindings.HDF5.Raw.H5I
-
-import Foreign.Ptr.Conventions
 
 -- TODO: Haddock docs.  This is a low priority right now because I don't even have an MPI library installed anywhere.
 

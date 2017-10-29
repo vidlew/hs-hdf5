@@ -2,7 +2,12 @@ module Bindings.HDF5.Raw.H5 where
 #include <bindings.h>
 #include <H5public.h>
 
-#strict_import
+-- #strict_import
+import Foreign.Storable
+import Foreign.C.Types
+import Data.Int
+import Data.Word
+import Foreign.Ptr
 
 import Data.Bits
 import Data.Version
@@ -27,7 +32,7 @@ vers :: Version
 vers = Version
     [ h5_VERS_MAJOR
     , h5_VERS_MINOR
-    , h5_VERS_RELEASE 
+    , h5_VERS_RELEASE
     ]
     (filter (not.null) [ h5_VERS_SUBRELEASE ])
 
@@ -81,7 +86,7 @@ instance Eq HTri_t where
         = compare x 0 == compare y 0
 
 -- |C signed size type.  This is a semi-standard POSIX type that isn't in
--- the "Foreign.C.Types" module.  It is in "System.Posix.Types", but I'm not 
+-- the "Foreign.C.Types" module.  It is in "System.Posix.Types", but I'm not
 -- sure whether that module is available on all platforms.
 #newtype ssize_t, Eq, Ord, Num, Bits, Enum, Bounded, Real, Integral
 
@@ -126,16 +131,16 @@ hADDR_MAX = HAddr_t (#const HADDR_MAX)
 -- |Number of iteration orders
 #num H5_ITER_N
 
--- |Iteration callback return value indicating that iteration should stop 
+-- |Iteration callback return value indicating that iteration should stop
 -- and report an error.
 #newtype_const herr_t, H5_ITER_ERROR
 
 -- |Iteration callback return value indicating that iteration should continue.
 #newtype_const herr_t, H5_ITER_CONT
 
--- |Iteration callback return value indicating that iteration should stop 
+-- |Iteration callback return value indicating that iteration should stop
 -- without error.
--- 
+--
 -- Actually, any postive value will cause the iterator to stop and pass back
 -- that positive value to the function that called the iterator
 #newtype_const herr_t, H5_ITER_STOP
@@ -166,18 +171,18 @@ hADDR_MAX = HAddr_t (#const HADDR_MAX)
 -- *Functions in H5.c
 
 -- |Initialize the library.  This is normally called automatically, but if you
--- find that an HDF5 library function is failing inexplicably, then try 
+-- find that an HDF5 library function is failing inexplicably, then try
 -- calling this function first.
 --
 -- Return: Non-negative on success/Negative on failure
--- 
+--
 -- > herr_t H5open(void);
 #ccall H5open                   , IO <herr_t>
 
 -- |Terminate the library and release all resources.
 --
 -- Return: Non-negative on success/Negative on failure
--- 
+--
 -- > herr_t H5close(void);
 #ccall H5close                  , IO <herr_t>
 
@@ -185,16 +190,16 @@ hADDR_MAX = HAddr_t (#const HADDR_MAX)
 -- when the application exits by calling exit() or returning
 -- from main().  This function must be called before any other
 -- HDF5 function or constant is used or it will have no effect.
--- 
+--
 -- If this function is used then certain memory buffers will not
 -- be de-allocated nor will open files be flushed automatically.
 -- The application may still call H5close() explicitly to
 -- accomplish these things.
 --
--- Return:  non-negative on success, 
+-- Return:  non-negative on success,
 --          negative if this function is called more than
 --          once or if it is called too late.
--- 
+--
 -- > herr_t H5dont_atexit(void);
 #ccall H5dont_atexit            , IO <herr_t>
 
@@ -205,7 +210,7 @@ hADDR_MAX = HAddr_t (#const HADDR_MAX)
 -- These should probably be registered dynamicly in a linked list of
 -- functions to call, but there aren't that many right now, so we
 -- hard-wire them...
--- 
+--
 -- Return: non-negative on success, negative on failure
 --
 -- > herr_t H5garbage_collect(void);
@@ -217,22 +222,22 @@ hADDR_MAX = HAddr_t (#const HADDR_MAX)
 -- of that type, so if an application sets a limit of 1 MB on each of the
 -- global lists, up to 3 MB of total storage might be allocated (1MB on
 -- each of regular, array and block type lists).
--- 
+--
 -- The settings for block free lists are duplicated to factory free lists.
 -- Factory free list limits cannot be set independently currently.
 --
 -- Parameters:
--- 
+--
 -- [@ reg_global_lim :: CInt @]  The limit on all \"regular\" free list memory used
--- 
+--
 -- [@ reg_list_lim   :: CInt @]  The limit on memory used in each \"regular\" free list
--- 
+--
 -- [@ arr_global_lim :: CInt @]  The limit on all \"array\" free list memory used
--- 
+--
 -- [@ arr_list_lim   :: CInt @]  The limit on memory used in each \"array\" free list
--- 
+--
 -- [@ blk_global_lim :: CInt @]  The limit on all \"block\" free list memory used
--- 
+--
 -- [@ blk_list_lim   :: CInt @]  The limit on memory used in each \"block\" free list
 --
 -- Return: non-negative on success, negative on failure
@@ -264,7 +269,7 @@ hADDR_MAX = HAddr_t (#const HADDR_MAX)
 -- library.
 --
 -- Return: Success: 0, Failure: calls abort()
--- 
+--
 -- > herr_t H5check_version(unsigned majnum, unsigned minnum,
 -- >         unsigned relnum);
 #ccall H5check_version          , CUInt -> CUInt -> CUInt -> IO <herr_t>

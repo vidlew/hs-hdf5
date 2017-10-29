@@ -23,6 +23,7 @@ Library
   extensions:           ForeignFunctionInterface, GeneralizedNewtypeDeriving
 
   ghc-options:          -Wall
+  cc-options:           -Wno-format
   exposed-modules:      Bindings.HDF5
                       , Bindings.HDF5.Raw
                       , Bindings.HDF5.Core

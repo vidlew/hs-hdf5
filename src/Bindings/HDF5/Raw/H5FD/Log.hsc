@@ -9,14 +9,16 @@
 -- application to the same file).
 --     With custom modifications...
 module Bindings.HDF5.Raw.H5FD.Log where
-#strict_import
+-- #strict_import
+import Foreign.Ptr
+import Foreign.C.Types
+import Foreign.C.String (CString)
 
 import System.IO.Unsafe (unsafePerformIO)
 
 import Bindings.HDF5.Raw.H5
 import Bindings.HDF5.Raw.H5I
 
-import Foreign.Ptr.Conventions
 
 #mangle_ident "H5FD_LOG"
     = unsafePerformIO (#mangle_ident "H5FD_log_init")
@@ -58,12 +60,12 @@ import Foreign.Ptr.Conventions
 -- * Functions
 
 -- |Initialize this driver by registering the driver with the library.
--- 
+--
 -- > hid_t H5FD_log_init(void);
 #ccall H5FD_log_init, IO <hid_t>
 
 -- |Shut down the VFD.
--- 
+--
 -- > void H5FD_log_term(void);
 #ccall H5FD_log_term, IO ()
 
@@ -73,4 +75,3 @@ import Foreign.Ptr.Conventions
 --
 -- > herr_t H5Pset_fapl_log(hid_t fapl_id, const char *logfile, unsigned flags, size_t buf_size);
 #ccall H5Pset_fapl_log, <hid_t> -> CString -> CUInt -> <size_t> -> IO <herr_t>
-

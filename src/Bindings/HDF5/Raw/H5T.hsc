@@ -3,7 +3,13 @@
 #include <H5Tpublic.h>
 
 module Bindings.HDF5.Raw.H5T where
-#strict_import
+-- #strict_import
+import Foreign.C.Types
+import Foreign.C.String (CString)
+import Foreign.Ptr
+import Foreign.Storable
+import Data.Int
+import Data.Word
 
 import Foreign.Ptr.Conventions
 
@@ -11,7 +17,7 @@ import Bindings.HDF5.Raw.H5
 import Bindings.HDF5.Raw.H5I
 
 -- |These are the various classes of datatypes
--- 
+--
 -- If this goes over 16 types (0-15), the file format will need to change)
 #newtype H5T_class_t, Eq
 
@@ -257,13 +263,13 @@ import Bindings.HDF5.Raw.H5I
 #newtype H5T_bkg_t, Eq
 
 -- |background buffer is not needed, send NULL
-#newtype_const H5T_bkg_t, H5T_BKG_NO  
+#newtype_const H5T_bkg_t, H5T_BKG_NO
 
 -- |bkg buffer used as temp storage only
 #newtype_const H5T_bkg_t, H5T_BKG_TEMP
 
 -- |init bkg buf with data before conversion
-#newtype_const H5T_bkg_t, H5T_BKG_YES 
+#newtype_const H5T_bkg_t, H5T_BKG_YES
 
 -- |Type conversion client data
 data H5T_cdata_t a = H5T_cdata_t {
@@ -279,7 +285,7 @@ data H5T_cdata_t a = H5T_cdata_t {
 
     -- |private data
     h5t_cdata_t'priv      :: Ptr a}
-    
+
     deriving (Eq,Show)
 
 instance Storable (H5T_cdata_t a) where
@@ -378,7 +384,7 @@ h5t_VARIABLE = #const H5T_VARIABLE
 #num H5T_OPAQUE_TAG_MAX
 
 -- TODO: find documentation for this type.
-type H5T_conv_t a b conversionData = FunPtr 
+type H5T_conv_t a b conversionData = FunPtr
     (HId_t -> HId_t -> Ptr (H5T_cdata_t conversionData)
     -> CSize -> CSize -> CSize -> InOutArray a -> InArray b -> HId_t
     -> IO HErr_t)
@@ -436,7 +442,7 @@ type H5T_conv_except_func_t a userData = FunPtr
 #cinline H5T_UNIX_D64BE,        <hid_t>
 #cinline H5T_UNIX_D64LE,        <hid_t>
 
--- **  Types particular to the C language.  
+-- **  Types particular to the C language.
 -- String types use \"bytes\" instead of \"bits\" as their size.
 
 #cinline H5T_C_S1,              <hid_t>
@@ -506,7 +512,7 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 
 -- ** Predefined native types.
 -- These are the types detected by 'h5_detect' and they violate the naming
--- scheme a little.  Instead of a class name, precision and byte order as 
+-- scheme a little.  Instead of a class name, precision and byte order as
 -- the last component, they have a C-like type name.
 -- If the type begins with 'U' then it is the unsigned version of the
 -- integer type; other integer types are signed.  The type LLONG corresponds
@@ -574,19 +580,19 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 
 -- |Create a new type and initialize it to reasonable values.
 -- The type is a member of type class 'type' and is 'size' bytes.
--- 
+--
 -- On success, returns a new type identifier.  On failure, returns
 -- a negative value.
--- 
+--
 -- > hid_t H5Tcreate(H5T_class_t type, size_t size);
 #ccall H5Tcreate, H5T_class_t -> <size_t> -> IO <hid_t>
 
 -- |Copies a datatype.  The resulting datatype is not locked.
 -- The datatype should be closed when no longer needed by
 -- calling 'h5t_close'.
--- 
+--
 -- Returns the ID of a new datatype on success, negative on failure.
--- 
+--
 -- > hid_t H5Tcopy(hid_t type_id);
 #ccall H5Tcopy, <hid_t> -> IO <hid_t>
 
@@ -606,31 +612,31 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- is normally done by the library for predefined datatypes so
 -- the application doesn't inadvertently change or delete a
 -- predefined type.
--- 
+--
 -- Once a datatype is locked it can never be unlocked unless
 -- the entire library is closed.
--- 
+--
 -- It is illegal to lock a named datatype since we must allow named
 -- types to be closed (to release file resources) but locking a type
 -- prevents that.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Tlock(hid_t type_id);
 #ccall H5Tlock, <hid_t> -> IO <herr_t>
 
 -- |Save a transient datatype to a file and turn the type handle
 -- into a \"named\", immutable type.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Tcommit2(hid_t loc_id, const char *name, hid_t type_id,
 -- >     hid_t lcpl_id, hid_t tcpl_id, hid_t tapl_id);
 #ccall H5Tcommit2, <hid_t> -> CString -> <hid_t> -> <hid_t> -> <hid_t> -> <hid_t> -> IO <herr_t>
 
 -- |Opens a named datatype using a Datatype Access Property
 --     List.
--- 
+--
 -- Returns the object ID of the named datatype on success, negative
 -- on failure.
 --
@@ -639,15 +645,15 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 
 -- |Save a transient datatype to a file and turn the type handle
 -- into a \"named\", immutable type.
--- 
+--
 -- The resulting ID should be linked into the file with
 -- 'h5o_link' or it will be deleted when closed.
--- 
+--
 -- Note:  Datatype access property list is unused currently, but is
 -- checked for sanity anyway.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Tcommit_anon(hid_t loc_id, hid_t type_id, hid_t tcpl_id, hid_t tapl_id);
 #ccall H5Tcommit_anon, <hid_t> -> <hid_t> -> <hid_t> -> <hid_t> -> IO <herr_t>
 
@@ -664,15 +670,15 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 
 -- |Given a datatype ID, converts the object description into
 -- binary in a buffer.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Tencode(hid_t obj_id, void *buf, size_t *nalloc);
 #ccall H5Tencode, <hid_t> -> OutArray a -> InOut <size_t> -> IO <herr_t>
 
 -- |Decode a binary object description and return a new object handle,
 -- or negative on failure.
--- 
+--
 -- > hid_t H5Tdecode(const void *buf);
 #ccall H5Tdecode, InArray a -> IO <hid_t>
 
@@ -692,9 +698,9 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 
 -- |Recursively removes padding from within a compound datatype
 -- to make it more efficient (space-wise) to store that data.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Tpack(hid_t type_id);
 #ccall H5Tpack, <hid_t> -> IO <herr_t>
 
@@ -702,10 +708,10 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 
 -- |Create a new enumeration data type based on the specified
 -- 'type', which must be an integer type.
--- 
+--
 -- Returns the ID of a new enumeration data type on success, negative
 -- on failure.
--- 
+--
 -- > hid_t H5Tenum_create(hid_t base_id);
 #ccall H5Tenum_create, <hid_t> -> IO <hid_t>
 
@@ -715,9 +721,9 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- The 'name' and 'value' must both be unique within the 'type'. 'value'
 -- points to data which is of the data type defined when the
 -- enumeration type was created.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Tenum_insert(hid_t type, const char *name, const void *value);
 #ccall H5Tenum_insert, <hid_t> -> CString -> In a -> IO <herr_t>
 
@@ -727,16 +733,16 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- entire symbol anem and null terminator do not fit in the 'name'
 -- buffer then as many characters as possible are copied (not
 -- null terminated) and the function fails.
--- 
+--
 -- Returns non-negative on success, negative on failure.  On failure,
 -- the first character of 'name' is set to null if 'size' allows it.
--- 
+--
 -- WARNING: the above 2 paragraphs contradict each other about what happens
 -- on failure.  This is because the documentation in the source does.  If
 -- I read the source correctly, this is because there are some failures which
--- have one behavior and some which have the other.  Therefore, I would 
+-- have one behavior and some which have the other.  Therefore, I would
 -- probably not rely on either behavior.
--- 
+--
 -- > herr_t H5Tenum_nameof(hid_t type, const void *value, char *name/*out*/,
 -- >        size_t size);
 #ccall H5Tenum_nameof, <hid_t> -> In a -> OutArray CChar -> <size_t> -> IO <herr_t>
@@ -745,9 +751,9 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- enumeration 'type'. The 'value' argument should be at least as
 -- large as the value of @'h5t_get_size' type@ in order to hold the
 -- result.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Tenum_valueof(hid_t type, const char *name,
 -- >        void *value/*out*/);
 #ccall H5Tenum_valueof, <hid_t> -> CString -> Out a -> IO <herr_t>
@@ -755,9 +761,9 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- * Operations defined on variable-length datatypes
 
 -- |Create a new variable-length datatype based on the specified 'base_type'.
--- 
+--
 -- Returns the ID of a new VL datatype on success, negative on failure.
--- 
+--
 -- > hid_t H5Tvlen_create(hid_t base_id);
 #ccall H5Tvlen_create, <hid_t> -> IO <hid_t>
 
@@ -768,33 +774,33 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- array is 'dims'. The total member size should be relatively small.
 -- Array datatypes are currently limited to 'h5s_max_rank' number of
 -- dimensions and must have the number of dimensions set greater than
--- 0. (i.e. 0 > 'ndims' <= 'h5s_MAX_RANK')  All dimensions sizes must be 
+-- 0. (i.e. 0 > 'ndims' <= 'h5s_MAX_RANK')  All dimensions sizes must be
 -- greater than 0 also.
--- 
+--
 -- Returns the ID of a new array datatype on success, negative on failure.
--- 
+--
 -- > hid_t H5Tarray_create2(hid_t base_id, unsigned ndims,
 -- >        const hsize_t dim[/* ndims */]);
 #ccall H5Tarray_create2, <hid_t> -> CUInt -> InArray <hsize_t> -> IO <hid_t>
 
 -- |Returns the number of dimensions of an array datatype, or negative on
 -- failure.
--- 
+--
 -- > int H5Tget_array_ndims(hid_t type_id);
 #ccall H5Tget_array_ndims, <hid_t> -> IO CInt
 
 -- |Query the sizes of dimensions for an array datatype.
--- 
+--
 -- Returns the number of dimensions of the array type on success or
 -- negative on failure.
--- 
+--
 -- > int H5Tget_array_dims2(hid_t type_id, hsize_t dims[]);
 #ccall H5Tget_array_dims2, <hid_t> -> OutArray <hsize_t> -> IO CInt
 
 -- * Operations defined on opaque datatypes
 
 -- |Tag an opaque datatype with a unique ASCII identifier.
--- 
+--
 -- Returns non-negative on success, negative on failure.
 --
 -- > herr_t H5Tset_tag(hid_t type, const char *tag);
@@ -812,10 +818,10 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 
 -- |Returns the type from which 'type' is derived. In the case of
 -- an enumeration type the return value is an integer type.
--- 
+--
 -- Returns the type ID for the base datatype on success, or negative on
 -- failure.
--- 
+--
 -- > hid_t H5Tget_super(hid_t type);
 #ccall H5Tget_super, <hid_t> -> IO <hid_t>
 
@@ -829,7 +835,7 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 
 -- |Check whether a datatype contains (or is) a certain type of
 -- datatype.
--- 
+--
 -- > htri_t H5Tdetect_class(hid_t type_id, H5T_class_t cls);
 #ccall H5Tdetect_class, <hid_t> -> <H5T_class_t> -> IO <htri_t>
 
@@ -843,10 +849,10 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 
 -- |Returns the byte order of a datatype on success, or 'h5t_ORDER_ERROR'
 -- (which is negative) on failure.
--- 
+--
 -- If the type is compound and its members have mixed orders, this function
 -- returns 'h5t_ORDER_MIXED'.
--- 
+--
 -- > H5T_order_t H5Tget_order(hid_t type_id);
 #ccall H5Tget_order, <hid_t> -> IO H5T_order_t
 
@@ -854,10 +860,10 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- the number of significant bits which, unless padding is
 -- present, is 8 times larger than the value returned by
 -- 'h5t_get_size'.
--- 
+--
 -- Returns 0 on failure (all atomic types have at least one
 -- significant bit)
--- 
+--
 -- > size_t H5Tget_precision(hid_t type_id);
 #ccall H5Tget_precision, <hid_t> -> IO <size_t>
 
@@ -869,16 +875,16 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- if we have a 32-bit datum with 16-bits of precision having
 -- the value 0x1122 then it will be layed out in memory as (from
 -- small byte address toward larger byte addresses):
--- 
+--
 -- >     Big      Big       Little   Little
 -- >     Endian   Endian    Endian   Endian
 -- >     offset=0 offset=16 offset=0 offset=16
--- > 
+-- >
 -- > 0:  [ pad]   [0x11]    [0x22]   [ pad]
 -- > 1:  [ pad]   [0x22]    [0x11]   [ pad]
 -- > 2:  [0x11]   [ pad]    [ pad]   [0x22]
 -- > 3:  [0x22]   [ pad]    [ pad]   [0x11]
--- 
+--
 -- Returns the offset on success or negative on failure.
 --
 -- > int H5Tget_offset(hid_t type_id);
@@ -887,9 +893,9 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- |Gets the least significant pad type and the most significant
 -- pad type and returns their values through the LSB and MSB
 -- arguments, either of which may be the null pointer.
--- 
+--
 -- Returns non-negative on success or negative on failure.
--- 
+--
 -- > herr_t H5Tget_pad(hid_t type_id, H5T_pad_t *lsb/*out*/,
 -- >        H5T_pad_t *msb/*out*/);
 #ccall H5Tget_pad, <hid_t> -> Out <H5T_pad_t> -> Out <H5T_pad_t> -> IO <herr_t>
@@ -904,11 +910,11 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- fields of a floating point datatype.  The field positions
 -- are bit positions in the significant region of the datatype.
 -- Bits are numbered with the least significant bit number zero.
--- 
+--
 -- Any (or even all) of the arguments can be null pointers.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Tget_fields(hid_t type_id, size_t *spos/*out*/,
 -- >        size_t *epos/*out*/, size_t *esize/*out*/,
 -- >        size_t *mpos/*out*/, size_t *msize/*out*/);
@@ -921,7 +927,7 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 
 -- |Returns the mantisssa normalization of a floating-point data type,
 -- or 'h5t_NORM_ERROR' (a negative value) on failure.
--- 
+--
 -- > H5T_norm_t H5Tget_norm(hid_t type_id);
 #ccall H5Tget_norm, <hid_t> -> IO <H5T_norm_t>
 
@@ -929,7 +935,7 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- (that is, those significant bits which are not part of the
 -- sign, exponent, or mantissa) then they will be filled
 -- according to the value of this property.
--- 
+--
 -- > H5T_pad_t H5Tget_inpad(hid_t type_id);
 #ccall H5Tget_inpad, <hid_t> -> IO <H5T_pad_t>
 
@@ -937,19 +943,19 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- programming language: C usually null terminates strings while
 -- Fortran left-justifies and space-pads strings.  This property
 -- defines the storage mechanism for the string.
--- 
+--
 -- Returns the character set of a string type on success, or
 -- 'h5t_STR_ERROR' (a negative value) on failure.
--- 
+--
 -- > H5T_str_t H5Tget_strpad(hid_t type_id);
 #ccall H5Tget_strpad, <hid_t> -> IO <H5T_str_t>
 
 -- |Determines how many members 'type_id' has.  The type must be
 -- either a compound datatype or an enumeration datatype.
--- 
+--
 -- Returns the number of members defined in the datatype on success, or
 -- negative on failure.
--- 
+--
 -- > int H5Tget_nmembers(hid_t type_id);
 #ccall H5Tget_nmembers, <hid_t> -> IO CInt
 
@@ -957,10 +963,10 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- datatype.  Members are stored in no particular order with
 -- numbers 0 through N-1 where N is the value returned by
 -- 'h5t_get_nmembers'.
--- 
--- Returns a pointer to a string allocated with 'malloc', or NULL on 
+--
+-- Returns a pointer to a string allocated with 'malloc', or NULL on
 -- failure.  The caller is responsible for 'free'ing the string.
--- 
+--
 -- > char *H5Tget_member_name(hid_t type_id, unsigned membno);
 #ccall H5Tget_member_name, <hid_t> -> CUInt -> IO CString
 
@@ -968,35 +974,35 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- datatype by given name.  Members are stored in no particular
 -- order with numbers 0 through N-1 where N is the value
 -- returned by 'h5t_get_nmembers'.
--- 
+--
 -- Returns the index of the member on success, or negative on
 -- failure.
--- 
+--
 -- > int H5Tget_member_index(hid_t type_id, const char *name);
 #ccall H5Tget_member_index, <hid_t> -> CString -> IO CInt
 
 -- |Returns the byte offset of the beginning of a member with
 -- respect to the beginning of the compound datatype datum.
--- 
+--
 -- Returns the byte offset on success, or zero on failure.
 -- Zero is a valid offset, but this function will fail only
 -- if a call to 'h5t_get_member_dims' fails with the same
 -- arguments.
--- 
+--
 -- > size_t H5Tget_member_offset(hid_t type_id, unsigned membno);
 #ccall H5Tget_member_offset, <hid_t> -> CUInt -> IO <size_t>
 
 -- |Returns the datatype class of a member of a compound datatype.
 --
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > H5T_class_t H5Tget_member_class(hid_t type_id, unsigned membno);
 #ccall H5Tget_member_class, <hid_t> -> CUInt -> IO <H5T_class_t>
 
 -- |Returns a copy of the datatype of the specified member, or negative
 -- on failure.  The caller should invoke 'h5t_close' to release resources
 -- associated with the type.
--- 
+--
 -- > hid_t H5Tget_member_type(hid_t type_id, unsigned membno);
 #ccall H5Tget_member_type, <hid_t> -> CUInt -> IO <hid_t>
 
@@ -1010,15 +1016,15 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- |HDF5 is able to distinguish between character sets of
 -- different nationalities and to convert between them to the
 -- extent possible.
--- 
+--
 -- Returns the character set of a string type on success, or
 -- 'h5t_CSET_ERROR' (a negative value) on failure.
--- 
+--
 -- > H5T_cset_t H5Tget_cset(hid_t type_id);
 #ccall H5Tget_cset, <hid_t> -> IO <H5T_cset_t>
 
 -- |Check whether a datatype is a variable-length string
--- 
+--
 -- > htri_t H5Tis_variable_str(hid_t type_id);
 #ccall H5Tis_variable_str, <hid_t> -> IO <htri_t>
 
@@ -1026,21 +1032,21 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- The native type is chosen by matching the size and class of
 -- querried datatype from the following native premitive
 -- datatypes:
--- 
+--
 --  'h5t_NATIVE_CHAR'         'h5t_NATIVE_UCHAR'
 --  'h5t_NATIVE_SHORT'        'h5t_NATIVE_USHORT'
 --  'h5t_NATIVE_INT'          'h5t_NATIVE_UINT'
 --  'h5t_NATIVE_LONG'         'h5t_NATIVE_ULONG'
 --  'h5t_NATIVE_LLONG'        'h5t_NATIVE_ULLONG'
--- 
+--
 --  'H5T_NATIVE_FLOAT'
 --  'H5T_NATIVE_DOUBLE'
 --  'H5T_NATIVE_LDOUBLE'
--- 
+--
 -- Compound, array, enum, and VL types all choose among these
 -- types for theire members.  Time, Bifield, Opaque, Reference
 -- types are only copy out.
--- 
+--
 -- Returns the native data type if successful, negative otherwise.
 --
 -- > hid_t H5Tget_native_type(hid_t type_id, H5T_direction_t direction);
@@ -1056,33 +1062,33 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- zero and the significant bits of the datatype still hang
 -- over the edge of the new size, then the number of significant
 -- bits is decreased.
--- 
+--
 -- Adjusting the size of an 'h5t_STRING' automatically sets the
 -- precision to @8*size@.
--- 
+--
 -- All datatypes have a positive size.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Tset_size(hid_t type_id, size_t size);
 #ccall H5Tset_size, <hid_t> -> <size_t> -> IO <herr_t>
 
 -- |Sets the byte order for a datatype.
--- 
+--
 -- Notes:  There are some restrictions on this operation:
--- 
+--
 --  1. For enum type, members shouldn't be defined yet.
--- 
+--
 --  2. 'h5t_ORDER_NONE' only works for reference and fixed-length
 --     string.
--- 
+--
 --  3. For opaque type, the order will be ignored.
--- 
---  4. For compound type, all restrictions above apply to the 
+--
+--  4. For compound type, all restrictions above apply to the
 --     members.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Tset_order(hid_t type_id, H5T_order_t order);
 #ccall H5Tset_order, <hid_t> -> <H5T_order_t> -> IO <herr_t>
 
@@ -1090,19 +1096,19 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- the number of significant bits which, unless padding is
 -- present, is 8 times larger than the value returned by
 -- 'h5t_get_size'.
--- 
+--
 -- If the precision is increased then the offset is decreased
 -- and then the size is increased to insure that significant
 -- bits do not \"hang over\" the edge of the datatype.
--- 
+--
 -- The precision property of strings is read-only.
--- 
+--
 -- When decreasing the precision of a floating point type, set
 -- the locations and sizes of the sign, mantissa, and exponent
 -- fields first.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Tset_precision(hid_t type_id, size_t prec);
 #ccall H5Tset_precision, <hid_t> -> <size_t> -> IO <herr_t>
 
@@ -1114,39 +1120,39 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- if we have a 32-bit datum with 16-bits of precision having
 -- the value 0x1122 then it will be layed out in memory as (from
 -- small byte address toward larger byte addresses):
--- 
+--
 -- >     Big      Big       Little   Little
 -- >     Endian   Endian    Endian   Endian
 -- >     offset=0 offset=16 offset=0 offset=16
--- > 
+-- >
 -- > 0:  [ pad]   [0x11]    [0x22]   [ pad]
 -- > 1:  [ pad]   [0x22]    [0x11]   [ pad]
 -- > 2:  [0x11]   [ pad]    [ pad]   [0x22]
 -- > 3:  [0x22]   [ pad]    [ pad]   [0x11]
--- 
+--
 -- If the offset is incremented then the total size is
 -- incremented also if necessary to prevent significant bits of
 -- the value from hanging over the edge of the data type.
--- 
+--
 -- The offset of an 'h5t_STRING' cannot be set to anything but
 -- zero.
 --
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Tset_offset(hid_t type_id, size_t offset);
 #ccall H5Tset_offset, <hid_t> -> <size_t> -> IO <herr_t>
 
 -- |Sets the LSB and MSB pad types.
 --
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Tset_pad(hid_t type_id, H5T_pad_t lsb, H5T_pad_t msb);
 #ccall H5Tset_pad, <hid_t> -> <H5T_pad_t> -> <H5T_pad_t> -> IO <herr_t>
 
 -- |Sets the sign property for an integer.
 --
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Tset_sign(hid_t type_id, H5T_sign_t sign);
 #ccall H5Tset_sign, <hid_t> -> <H5T_sign_t> -> IO <herr_t>
 
@@ -1154,12 +1160,12 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- bit fields.  The field positions are bit positions in the
 -- significant region of the datatype.  Bits are numbered with
 -- the least significant bit number zero.
--- 
+--
 -- Fields are not allowed to extend beyond the number of bits of
 -- precision, nor are they allowed to overlap with one another.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Tset_fields(hid_t type_id, size_t spos, size_t epos,
 -- >        size_t esize, size_t mpos, size_t msize);
 #ccall H5Tset_fields, <hid_t> -> <size_t> -> <size_t> -> <size_t> -> <size_t> -> <size_t> -> IO <herr_t>
@@ -1167,15 +1173,15 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- |Sets the exponent bias of a floating-point type.
 --
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Tset_ebias(hid_t type_id, size_t ebias);
 #ccall H5Tset_ebias, <hid_t> -> <size_t> -> IO <herr_t>
 
 -- |Sets the mantissa normalization method for a floating point
 -- datatype.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Tset_norm(hid_t type_id, H5T_norm_t norm);
 #ccall H5Tset_norm, <hid_t> -> <H5T_norm_t> -> IO <herr_t>
 
@@ -1183,18 +1189,18 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- (that is, those significant bits which are not part of the
 -- sign, exponent, or mantissa) then they will be filled
 -- according to the value of this property.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Tset_inpad(hid_t type_id, H5T_pad_t pad);
 #ccall H5Tset_inpad, <hid_t> -> <H5T_pad_t> -> IO <herr_t>
 
 -- |HDF5 is able to distinguish between character sets of
 -- different nationalities and to convert between them to the
 -- extent possible.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Tset_cset(hid_t type_id, H5T_cset_t cset);
 #ccall H5Tset_cset, <hid_t> -> <H5T_cset_t> -> IO <herr_t>
 
@@ -1202,19 +1208,19 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- programming language: C usually null terminates strings while
 -- Fortran left-justifies and space-pads strings.  This property
 -- defines the storage mechanism for the string.
--- 
+--
 -- When converting from a long string to a short string if the
 -- short string is 'h5t_STR_NULLPAD' or 'h5t_STR_SPACEPAD' then the
 -- string is simply truncated; otherwise if the short string is
 -- 'h5t_STR_NULLTERM' it will be truncated and a null terminator
 -- is appended.
--- 
+--
 -- When converting from a short string to a long string, the
 -- long string is padded on the end by appending nulls or
 -- spaces.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Tset_strpad(hid_t type_id, H5T_str_t strpad);
 #ccall H5Tset_strpad, <hid_t> -> <H5T_str_t> -> IO <herr_t>
 
@@ -1228,9 +1234,9 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- soft function then it replaces all existing paths to which it
 -- applies and is used for any new path to which it applies as
 -- long as that path doesn't have a hard function.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Tregister(H5T_pers_t pers, const char *name, hid_t src_id,
 -- >        hid_t dst_id, H5T_conv_t func);
 #ccall H5Tregister, <H5T_pers_t> -> CString -> <hid_t> -> <hid_t> -> H5T_conv_t a b c -> IO <herr_t>
@@ -1238,9 +1244,9 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- |Removes conversion paths that match the specified criteria.
 -- All arguments are optional. Missing arguments are wild cards.
 -- The special no-op path cannot be removed.
--- 
+--
 -- Returns non-negative on success, negative on failure.
--- 
+--
 -- > herr_t H5Tunregister(H5T_pers_t pers, const char *name, hid_t src_id,
 -- >        hid_t dst_id, H5T_conv_t func);
 #ccall H5Tunregister, <H5T_pers_t> -> CString -> <hid_t> -> <hid_t> -> H5T_conv_t a b c -> IO <herr_t>
@@ -1251,7 +1257,7 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- to a pointer to type conversion data which was created and
 -- initialized by the type conversion function of this path
 -- when the conversion function was installed on the path.
--- 
+--
 -- > H5T_convT H5Tfind(hid_t src_id, hid_t dst_id, H5T_cdata_t **pcdata);
 #ccall H5Tfind, <hid_t> -> <hid_t> -> Out (Ptr (H5T_cdata_t c)) -> IO (H5T_conv_t a b c)
 
@@ -1259,7 +1265,7 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- type 'src_id' to type 'dst_id' is a compiler (hard) conversion.
 -- A hard conversion uses compiler's casting; a soft conversion
 -- uses the library's own conversion function.
--- 
+--
 -- > htri_t H5Tcompiler_conv(hid_t src_id, hid_t dst_id);
 #ccall H5Tcompiler_conv, <hid_t> -> <hid_t> -> IO <htri_t>
 
@@ -1275,7 +1281,7 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- property list which is passed to the conversion functions.  (It's
 -- currently only used to pass along the VL datatype custom allocation
 -- information -QAK 7/1/99)
--- 
+--
 -- > herr_t H5Tconvert(hid_t src_id, hid_t dst_id, size_t nelmts,
 -- >        void *buf, void *background, hid_t plist_id);
 #ccall H5Tconvert, <hid_t> -> <hid_t> -> <size_t> -> InOutArray a -> InArray b -> <hid_t> -> IO <herr_t>
@@ -1288,9 +1294,9 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 
 -- |Save a transient datatype to a file and turn the type handle
 -- into a named, immutable type.
--- 
+--
 -- Note:  Deprecated in favor of 'h5t_commit2'
--- 
+--
 -- > herr_t H5Tcommit1(hid_t loc_id, const char *name, hid_t type_id);
 #ccall H5Tcommit1, <hid_t> -> CString -> <hid_t> -> IO <herr_t>
 
@@ -1306,12 +1312,12 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 -- array is 'dims'. The total member size should be relatively small.
 -- Array datatypes are currently limited to 'h5s_MAX_RANK' number of
 -- dimensions and must have the number of dimensions set greater than
--- 0. (i.e. @0 > ndims <= 'h5s_MAX_RANK'@)  All dimensions sizes must 
+-- 0. (i.e. @0 > ndims <= 'h5s_MAX_RANK'@)  All dimensions sizes must
 -- be greater than 0 also.
--- 
--- Returns the ID of a new array datatype on success, negative on 
+--
+-- Returns the ID of a new array datatype on success, negative on
 -- failure.
--- 
+--
 -- > hid_t H5Tarray_create1(hid_t base_id, int ndims,
 -- >        const hsize_t dim[/* ndims */],
 -- >        const int perm[/* ndims */]);
@@ -1319,12 +1325,11 @@ h5t_MIPS_F64 = h5t_IEEE_F64BE
 
 -- |Query the sizes of dimensions for an array datatype.
 --
--- Returns the number of dimensions of the array type on success, 
+-- Returns the number of dimensions of the array type on success,
 -- negative on failure.
 --
 -- > int H5Tget_array_dims1(hid_t type_id, hsize_t dims[], int perm[]);
 #ccall H5Tget_array_dims1, <hid_t> -> OutArray <hsize_t> -> OutArray CInt -> IO CInt
 
--- 
+--
 #endif /* H5_NO_DEPRECATED_SYMBOLS */
-

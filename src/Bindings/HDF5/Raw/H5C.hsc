@@ -2,9 +2,9 @@ module Bindings.HDF5.Raw.H5C where
 #include <bindings.h>
 #include <H5Cpublic.h>
 
-#strict_import
-
-import Bindings.HDF5.Raw.H5
+-- #strict_import
+import Foreign.Storable
+import Data.Word
 
 #def typedef enum H5C_cache_incr_mode H5C_cache_incr_mode;
 #newtype H5C_cache_incr_mode, Eq
@@ -22,4 +22,3 @@ import Bindings.HDF5.Raw.H5
 #newtype_const H5C_cache_decr_mode, H5C_decr__threshold
 #newtype_const H5C_cache_decr_mode, H5C_decr__age_out
 #newtype_const H5C_cache_decr_mode, H5C_decr__age_out_with_threshold
-

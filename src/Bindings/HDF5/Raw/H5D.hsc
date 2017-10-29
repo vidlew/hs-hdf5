@@ -8,7 +8,7 @@ import Foreign.C.Types
 import Data.Int
 import Data.Word
 import Foreign.Ptr
-import Foreign.C.String (CString,CStringLen,CWString,CWStringLen)
+import Foreign.C.String (CString)
 
 import Bindings.HDF5.Raw.H5
 import Bindings.HDF5.Raw.H5I

@@ -17,6 +17,7 @@ import Bindings.HDF5.Raw.H5I
 
 import Foreign.Ptr.Conventions
 
+h5fd_CORE :: HId_t
 #mangle_ident "H5FD_CORE"
     = unsafePerformIO (#mangle_ident "H5FD_core_init")
 

@@ -9,7 +9,7 @@ module Bindings.HDF5.Raw.H5FD.Direct where
 
 import Bindings.HDF5.Raw.H5I
 
-
+h5fd_DIRECT :: HId_t
 #mangle_ident "H5FD_DIRECT"
 #ifdef H5_HAVE_DIRECT
     = unsafePerformIO (#mangle_ident "H5FD_direct_init")

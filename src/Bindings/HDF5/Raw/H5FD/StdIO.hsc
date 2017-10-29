@@ -11,6 +11,7 @@ import Bindings.HDF5.Raw.H5
 import Bindings.HDF5.Raw.H5I
 
 
+h5fd_STDIO :: HId_t
 #mangle_ident "H5FD_STDIO"
     = unsafePerformIO (#mangle_ident "H5FD_stdio_init")
 

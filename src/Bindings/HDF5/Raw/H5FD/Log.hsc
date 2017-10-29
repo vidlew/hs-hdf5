@@ -20,6 +20,7 @@ import Bindings.HDF5.Raw.H5
 import Bindings.HDF5.Raw.H5I
 
 
+h5fd_LOG :: HId_t
 #mangle_ident "H5FD_LOG"
     = unsafePerformIO (#mangle_ident "H5FD_log_init")
 

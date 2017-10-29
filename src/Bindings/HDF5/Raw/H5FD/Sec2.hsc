@@ -16,6 +16,7 @@ import System.IO.Unsafe (unsafePerformIO)
 import Bindings.HDF5.Raw.H5
 import Bindings.HDF5.Raw.H5I
 
+h5fd_SEC2 :: HId_t
 #mangle_ident "H5FD_SEC2"
     = unsafePerformIO (#mangle_ident "H5FD_sec2_init")
 

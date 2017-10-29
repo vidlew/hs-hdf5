@@ -18,6 +18,7 @@ import Bindings.HDF5.Raw.H5FD
 
 import Foreign.Ptr.Conventions
 
+h5fd_MULTI :: HId_t
 #mangle_ident "H5FD_MULTI"
     = unsafePerformIO (#mangle_ident "H5FD_multi_init")
 

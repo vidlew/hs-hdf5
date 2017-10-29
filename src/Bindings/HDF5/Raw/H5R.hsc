@@ -34,15 +34,15 @@ import Foreign.Ptr.Conventions
 -- |Number of reference types
 #num H5R_MAXTYPE
 
+h5r_OBJ_REF_BUF_SIZE :: CSize
 #mangle_ident "H5R_OBJ_REF_BUF_SIZE"
     = #const H5R_OBJ_REF_BUF_SIZE
-    :: CSize
 
 #newtype hobj_ref_t
 
+h5r_DSET_REG_REF_BUF_SIZE :: CSize
 #mangle_ident "H5R_DSET_REG_REF_BUF_SIZE"
     = #const H5R_DSET_REG_REF_BUF_SIZE
-    :: CSize
 
 -- |Buffer to store heap ID and index
 --

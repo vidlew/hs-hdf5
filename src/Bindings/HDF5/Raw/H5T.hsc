@@ -454,55 +454,97 @@ type H5T_conv_except_func_t a userData = FunPtr
 -- ** Types for Intel CPUs.
 -- They are little endian with IEEE floating point.
 
+h5t_INTEL_I8 :: HId_t
 h5t_INTEL_I8  = h5t_STD_I8LE
+h5t_INTEL_I16 :: HId_t
 h5t_INTEL_I16 = h5t_STD_I16LE
+h5t_INTEL_I32 :: HId_t
 h5t_INTEL_I32 = h5t_STD_I32LE
+h5t_INTEL_I64 :: HId_t
 h5t_INTEL_I64 = h5t_STD_I64LE
+h5t_INTEL_U8 :: HId_t
 h5t_INTEL_U8  = h5t_STD_U8LE
+h5t_INTEL_U16 :: HId_t
 h5t_INTEL_U16 = h5t_STD_U16LE
+h5t_INTEL_U32 :: HId_t
 h5t_INTEL_U32 = h5t_STD_U32LE
+h5t_INTEL_U64 :: HId_t
 h5t_INTEL_U64 = h5t_STD_U64LE
+h5t_INTEL_B8 :: HId_t
 h5t_INTEL_B8  = h5t_STD_B8LE
+h5t_INTEL_B16 :: HId_t
 h5t_INTEL_B16 = h5t_STD_B16LE
+h5t_INTEL_B32 :: HId_t
 h5t_INTEL_B32 = h5t_STD_B32LE
+h5t_INTEL_B64 :: HId_t
 h5t_INTEL_B64 = h5t_STD_B64LE
+h5t_INTEL_F32 :: HId_t
 h5t_INTEL_F32 = h5t_IEEE_F32LE
+h5t_INTEL_F64 :: HId_t
 h5t_INTEL_F64 = h5t_IEEE_F64LE
 
 -- ** Types for Alpha CPUs.
 -- They are little endian with IEEE floating point.
 
+h5t_ALPHA_I8 :: HId_t
 h5t_ALPHA_I8  = h5t_STD_I8LE
+h5t_ALPHA_I16 :: HId_t
 h5t_ALPHA_I16 = h5t_STD_I16LE
+h5t_ALPHA_I32 :: HId_t
 h5t_ALPHA_I32 = h5t_STD_I32LE
+h5t_ALPHA_I64 :: HId_t
 h5t_ALPHA_I64 = h5t_STD_I64LE
+h5t_ALPHA_U8 :: HId_t
 h5t_ALPHA_U8  = h5t_STD_U8LE
+h5t_ALPHA_U16 :: HId_t
 h5t_ALPHA_U16 = h5t_STD_U16LE
+h5t_ALPHA_U32 :: HId_t
 h5t_ALPHA_U32 = h5t_STD_U32LE
+h5t_ALPHA_U64 :: HId_t
 h5t_ALPHA_U64 = h5t_STD_U64LE
+h5t_ALPHA_B8 :: HId_t
 h5t_ALPHA_B8  = h5t_STD_B8LE
+h5t_ALPHA_B16 :: HId_t
 h5t_ALPHA_B16 = h5t_STD_B16LE
+h5t_ALPHA_B32 :: HId_t
 h5t_ALPHA_B32 = h5t_STD_B32LE
+h5t_ALPHA_B64 :: HId_t
 h5t_ALPHA_B64 = h5t_STD_B64LE
+h5t_ALPHA_F32 :: HId_t
 h5t_ALPHA_F32 = h5t_IEEE_F32LE
+h5t_ALPHA_F64 :: HId_t
 h5t_ALPHA_F64 = h5t_IEEE_F64LE
 
 -- ** Types for MIPS CPUs.
 -- They are big endian with IEEE floating point.
 
+h5t_MIPS_I8 :: HId_t
 h5t_MIPS_I8  = h5t_STD_I8BE
+h5t_MIPS_I16 :: HId_t
 h5t_MIPS_I16 = h5t_STD_I16BE
+h5t_MIPS_I32 :: HId_t
 h5t_MIPS_I32 = h5t_STD_I32BE
+h5t_MIPS_I64 :: HId_t
 h5t_MIPS_I64 = h5t_STD_I64BE
+h5t_MIPS_U8 :: HId_t
 h5t_MIPS_U8  = h5t_STD_U8BE
+h5t_MIPS_U16 :: HId_t
 h5t_MIPS_U16 = h5t_STD_U16BE
+h5t_MIPS_U32 :: HId_t
 h5t_MIPS_U32 = h5t_STD_U32BE
+h5t_MIPS_U64 :: HId_t
 h5t_MIPS_U64 = h5t_STD_U64BE
+h5t_MIPS_B8 :: HId_t
 h5t_MIPS_B8  = h5t_STD_B8BE
+h5t_MIPS_B16 :: HId_t
 h5t_MIPS_B16 = h5t_STD_B16BE
+h5t_MIPS_B32 :: HId_t
 h5t_MIPS_B32 = h5t_STD_B32BE
+h5t_MIPS_B64 :: HId_t
 h5t_MIPS_B64 = h5t_STD_B64BE
+h5t_MIPS_F32 :: HId_t
 h5t_MIPS_F32 = h5t_IEEE_F32BE
+h5t_MIPS_F64 :: HId_t
 h5t_MIPS_F64 = h5t_IEEE_F64BE
 
 -- ** VAX floating point types (i.e. in VAX byte order)

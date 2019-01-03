@@ -61,8 +61,8 @@ extra-package-dbs: []
 # arch: x86_64
 #
 # Extra directories used by stack for building
-extra-include-dirs: [/usr/local/include]
-extra-lib-dirs: [/usr/local/lib]
+extra-include-dirs: [/usr/local/hdf5-1.8.11/hdf5/include]
+extra-lib-dirs: [/usr/local/hdf5-1.8.11/hdf5/lib]
 #
 # Allow a newer minor version of GHC than the snapshot specifies
 # compiler-check: newer-minor

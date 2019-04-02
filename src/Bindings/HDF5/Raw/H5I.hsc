@@ -87,7 +87,7 @@ instance Show HId_t where
             , let digit = ((x .&. mask) `shiftR` place) .&. 0xf
             ]
         )
-#if __HASKELL_VERSION__ < 710
+#if !MIN_VERSION_base(4, 7, 0)
       where
         finiteBitSize = bitSize
 #endif

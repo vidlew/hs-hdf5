@@ -2,15 +2,14 @@ module Bindings.HDF5.Raw.H5 where
 #include <bindings.h>
 #include <H5public.h>
 
--- #strict_import
-import Foreign.Storable
-import Foreign.C.Types
-import Data.Int
-import Data.Word
-import Foreign.Ptr
-
 import Data.Bits
+import Data.Int
 import Data.Version
+import Data.Word
+import Foreign.C.Types
+import Foreign.Ptr
+import Foreign.Storable
+
 import Foreign.Ptr.Conventions
 
 -- *Version numbers
@@ -99,6 +98,13 @@ h5_SIZEOF_SSIZE_T = #const H5_SIZEOF_SSIZE_T
 h5_SIZEOF_HSIZE_T, h5_SIZEOF_HSSIZE_T :: CSize
 h5_SIZEOF_HSIZE_T  = #const H5_SIZEOF_HSIZE_T
 h5_SIZEOF_HSSIZE_T = #const H5_SIZEOF_HSSIZE_T
+
+#if H5_VERSION_GE(1,10,0)
+
+hSIZE_UNDEF :: HSize_t
+hSIZE_UNDEF = #const HSIZE_UNDEF
+
+#endif
 
 #newtype haddr_t, Eq, Ord, Num, Bits, Enum, Bounded, Real, Integral
 

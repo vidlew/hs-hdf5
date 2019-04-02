@@ -2,11 +2,10 @@ module Bindings.HDF5.Raw.H5AC where
 #include <bindings.h>
 #include <H5ACpublic.h>
 
--- #strict_import
-import Foreign.Storable
 import Foreign.C.Types
+import Foreign.Marshal.Array
 import Foreign.Ptr
-import Foreign.Marshal.Array (peekArray,pokeArray)
+import Foreign.Storable
 
 import Bindings.HDF5.Raw.H5
 import Bindings.HDF5.Raw.H5C
@@ -349,7 +348,11 @@ import Bindings.HDF5.Raw.H5C
 -- This value MUST be consistant across all processes accessing the
 -- file.  This field is ignored unless HDF5 has been compiled for
 -- parallel.
+#if H5_VERSION_GE(1,10,0)
+#field dirty_bytes_threshold,   <size_t>
+#else
 #field dirty_bytes_threshold,   CInt
+#endif
 
 #if H5_VERSION_GE(1,8,6)
 -- |Integer field containing a code indicating the

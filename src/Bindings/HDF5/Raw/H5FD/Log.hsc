@@ -1,5 +1,5 @@
 #include <bindings.h>
-#include <H5FDlog.h>
+#include <hdf5.h>
 
 -- |The POSIX unbuffered file driver using only the HDF5 public
 -- API and with a few optimizations: the lseek() call is made
@@ -9,18 +9,17 @@
 -- application to the same file).
 --     With custom modifications...
 module Bindings.HDF5.Raw.H5FD.Log where
--- #strict_import
-import Foreign.Ptr
-import Foreign.C.Types
-import Foreign.C.String (CString)
 
+import Foreign.C.String
+import Foreign.C.Types
+import Foreign.Ptr
 import System.IO.Unsafe (unsafePerformIO)
 
 import Bindings.HDF5.Raw.H5
 import Bindings.HDF5.Raw.H5I
 
-
-h5fd_LOG :: HId_t
+#mangle_ident "H5FD_LOG"
+  :: HId_t
 #mangle_ident "H5FD_LOG"
     = unsafePerformIO (#mangle_ident "H5FD_log_init")
 
@@ -65,10 +64,12 @@ h5fd_LOG :: HId_t
 -- > hid_t H5FD_log_init(void);
 #ccall H5FD_log_init, IO <hid_t>
 
+#if H5_VERSION_LE(1,8,18)
 -- |Shut down the VFD.
 --
 -- > void H5FD_log_term(void);
 #ccall H5FD_log_term, IO ()
+#endif
 
 -- TODO: evaluate the claim that "There are no driver-specific properties."  It appears to be patently false.
 -- |Modify the file access property list to use the H5FD_LOG
@@ -76,3 +77,4 @@ h5fd_LOG :: HId_t
 --
 -- > herr_t H5Pset_fapl_log(hid_t fapl_id, const char *logfile, unsigned flags, size_t buf_size);
 #ccall H5Pset_fapl_log, <hid_t> -> CString -> CUInt -> <size_t> -> IO <herr_t>
+

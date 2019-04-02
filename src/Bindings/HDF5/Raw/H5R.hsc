@@ -2,20 +2,20 @@
 #include <H5Rpublic.h>
 
 module Bindings.HDF5.Raw.H5R where
--- #strict_import
+
+import Data.ByteString
+import Data.Int
+import Data.Word
+import Foreign.C.String
 import Foreign.C.Types
 import Foreign.Ptr
-import Foreign.C.String (CString)
 import Foreign.Storable
-import Data.Word
-import Data.Int
 
 import Bindings.HDF5.Raw.H5
 import Bindings.HDF5.Raw.H5G
 import Bindings.HDF5.Raw.H5I
 import Bindings.HDF5.Raw.H5O
 
-import Data.ByteString
 
 import Foreign.Ptr.Conventions
 
@@ -34,13 +34,15 @@ import Foreign.Ptr.Conventions
 -- |Number of reference types
 #num H5R_MAXTYPE
 
-h5r_OBJ_REF_BUF_SIZE :: CSize
+#mangle_ident "H5R_OBJ_REF_BUF_SIZE"
+  :: CSize
 #mangle_ident "H5R_OBJ_REF_BUF_SIZE"
     = #const H5R_OBJ_REF_BUF_SIZE
 
 #newtype hobj_ref_t
 
-h5r_DSET_REG_REF_BUF_SIZE :: CSize
+#mangle_ident "H5R_DSET_REG_REF_BUF_SIZE"
+  :: CSize
 #mangle_ident "H5R_DSET_REG_REF_BUF_SIZE"
     = #const H5R_DSET_REG_REF_BUF_SIZE
 
@@ -89,7 +91,13 @@ newtype #mangle_tycon   "hdset_reg_ref_t"
 -- Returns a valid ID on success, negative on failure
 --
 -- > hid_t H5Rdereference(hid_t dataset, H5R_type_t ref_type, const void *ref);
+#if H5_VERSION_GE(1,10,0)
+#ccall H5Rdereference1, <hid_t> -> <H5R_type_t> -> In a -> IO <hid_t>
+-- > hid_t H5Rdereference2(hid_t obj_id, hid_t oapl_id, H5R_type_t ref_type, const void *ref);
+#ccall H5Rdereference2,  <hid_t> -> <hid_t> -> <H5R_type_t> -> In a -> IO <hid_t>
+#else
 #ccall H5Rdereference, <hid_t> -> <H5R_type_t> -> In a -> IO <hid_t>
+#endif
 
 -- |Retrieves a dataspace with the region pointed to selected.
 -- Given a reference to some object, creates a copy of the dataset pointed

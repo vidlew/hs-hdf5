@@ -1,15 +1,15 @@
 #include <bindings.h>
-#include <H5FDcore.h>
+#include <hdf5.h>
 
 -- |The Direct I/O file driver forces the data to be written to
 -- the file directly without being copied into system kernel
 -- buffer.  The main system supporting this feature is Linux.
 module Bindings.HDF5.Raw.H5FD.Direct where
--- #strict_import
 
 import Bindings.HDF5.Raw.H5I
 
-h5fd_DIRECT :: HId_t
+#mangle_ident "H5FD_DIRECT"
+  :: HId_t
 #mangle_ident "H5FD_DIRECT"
 #ifdef H5_HAVE_DIRECT
     = unsafePerformIO (#mangle_ident "H5FD_direct_init")

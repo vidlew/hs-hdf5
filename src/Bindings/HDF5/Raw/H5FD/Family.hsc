@@ -1,5 +1,5 @@
 #include <bindings.h>
-#include <H5FDfamily.h>
+#include <hdf5.h>
 
 -- |Implements a family of files that acts as a single hdf5
 -- file.  The purpose is to be able to split a huge file on a
@@ -16,17 +16,17 @@
 -- can be quite time consuming on file systems that don't
 -- implement holes, like nfs).
 module Bindings.HDF5.Raw.H5FD.Family where
--- #strict_import
-import Foreign.Ptr
 
 import System.IO.Unsafe (unsafePerformIO)
 
+import Foreign.Ptr
+
 import Bindings.HDF5.Raw.H5
 import Bindings.HDF5.Raw.H5I
-
 import Foreign.Ptr.Conventions
 
-h5fd_FAMILY :: HId_t
+#mangle_ident "H5FD_FAMILY"
+  :: HId_t
 #mangle_ident "H5FD_FAMILY"
     = unsafePerformIO (#mangle_ident "H5FD_family_init")
 
@@ -35,10 +35,12 @@ h5fd_FAMILY :: HId_t
 -- > hid_t H5FD_family_init(void);
 #ccall H5FD_family_init, IO <hid_t>
 
+#if H5_VERSION_LE(1,8,18)
 -- |Shut down the VFD.
 --
 -- > void H5FD_family_term(void);
 #ccall H5FD_family_term, IO ()
+#endif
 
 -- |Sets the file access property list 'fapl_id' to use the family
 -- driver. The 'memb_size' is the size in bytes of each file
@@ -56,3 +58,4 @@ h5fd_FAMILY :: HId_t
 -- > herr_t H5Pget_fapl_family(hid_t fapl_id, hsize_t *memb_size/*out*/,
 -- >        hid_t *memb_fapl_id/*out*/);
 #ccall H5Pget_fapl_family, <hid_t> -> Out <hsize_t> -> Out <hid_t> -> IO <herr_t>
+

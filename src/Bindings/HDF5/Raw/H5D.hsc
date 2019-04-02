@@ -2,17 +2,16 @@
 #include <H5Dpublic.h>
 
 module Bindings.HDF5.Raw.H5D where
--- #strict_import
-import Foreign.Storable
-import Foreign.C.Types
+
 import Data.Int
 import Data.Word
+import Foreign.C.String
+import Foreign.C.Types
 import Foreign.Ptr
-import Foreign.C.String (CString)
+import Foreign.Storable
 
 import Bindings.HDF5.Raw.H5
 import Bindings.HDF5.Raw.H5I
-
 import Foreign.Ptr.Conventions
 
 #if H5_VERSION_GE(1,8,3)
@@ -20,6 +19,13 @@ import Foreign.Ptr.Conventions
 #num H5D_CHUNK_CACHE_NSLOTS_DEFAULT
 #num H5D_CHUNK_CACHE_NBYTES_DEFAULT
 #num H5D_CHUNK_CACHE_W0_DEFAULT
+
+#endif
+
+#if H5_VERSION_GE(1,10,0)
+
+-- |Bit flags for the H5Pset_chunk_opts() and H5Pget_chunk_opts()
+#num H5D_CHUNK_DONT_FILTER_PARTIAL_CHUNKS
 
 #endif
 
@@ -47,6 +53,13 @@ import Foreign.Ptr.Conventions
 -- |slow and fancy
 #newtype_const H5D_layout_t, H5D_CHUNKED
 
+#if H5_VERSION_GE(1,10,0)
+
+-- |actual data is stored in other datasets
+#newtype_const H5D_layout_t, H5D_VIRTUAL
+
+#endif
+
 #num H5D_NLAYOUTS
 
 #if H5_VERSION_GE(1,8,3)
@@ -56,6 +69,25 @@ import Foreign.Ptr.Conventions
 
 -- |v1 B-tree index
 #newtype_const H5D_chunk_index_t, H5D_CHUNK_BTREE
+
+#if H5_VERSION_GE(1,10,0)
+
+-- |v1 B-tree index (default)
+#newtype_const H5D_chunk_index_t, H5D_CHUNK_IDX_BTREE
+-- |Single Chunk index (cur dims[]=max dims[]=chunk dims[]; filtered & non-filtered)
+#newtype_const H5D_chunk_index_t, H5D_CHUNK_IDX_SINGLE
+-- |Implicit: No Index (H5D_ALLOC_TIME_EARLY, non-filtered, fixed dims)
+#newtype_const H5D_chunk_index_t, H5D_CHUNK_IDX_NONE
+-- |Fixed array (for 0 unlimited dims)
+#newtype_const H5D_chunk_index_t, H5D_CHUNK_IDX_FARRAY
+-- |Extensible array (for 1 unlimited dim)
+#newtype_const H5D_chunk_index_t, H5D_CHUNK_IDX_EARRAY
+-- |v2 B-tree index (for >1 unlimited dims)
+#newtype_const H5D_chunk_index_t, H5D_CHUNK_IDX_BT2
+
+#num H5D_CHUNK_IDX_NTYPES
+
+#endif
 
 #endif
 
@@ -87,6 +119,20 @@ import Foreign.Ptr.Conventions
 #newtype_const H5D_fill_value_t, H5D_FILL_VALUE_UNDEFINED
 #newtype_const H5D_fill_value_t, H5D_FILL_VALUE_DEFAULT
 #newtype_const H5D_fill_value_t, H5D_FILL_VALUE_USER_DEFINED
+
+#if H5_VERSION_GE(1,10,0)
+
+-- | Values for VDS bounds option
+#newtype H5D_vds_view_t, Eq
+#newtype_const H5D_vds_view_t, H5D_VDS_ERROR
+#newtype_const H5D_vds_view_t, H5D_VDS_FIRST_MISSING
+#newtype_const H5D_vds_view_t, H5D_VDS_LAST_AVAILABLE
+
+-- |Callback for H5Pset_append_flush() in a dataset access property list
+-- > typedef herr_t (*H5D_append_cb_t)(hid_t dataset_id, hsize_t *cur_dims, void *op_data)
+type H5D_append_cb_t a = FunPtr (HId_t -> Out HSize_t -> InOut a -> IO HErr_t)
+
+#endif
 
 -- |Operator function type for 'h5d_iterate'
 --
@@ -428,6 +474,16 @@ type H5D_gather_func_t a b = FunPtr (InArray a -> CSize -> InOut b -> IO HErr_t)
 -- > herr_t H5Dset_extent(hid_t dset_id, const hsize_t size[]);
 #ccall H5Dset_extent, <hid_t> -> InArray <hsize_t> -> IO <herr_t>
 
+#if H5_VERSION_GE(1,10,0)
+
+-- > H5_DLL herr_t H5Dflush(hid_t dset_id);
+#ccall H5Dflush, <hid_t> -> IO <herr_t>
+
+-- > H5_DLL herr_t H5Drefresh(hid_t dset_id);                                
+#ccall H5Drefresh, <hid_t> -> IO <herr_t>
+
+#endif
+
 #if H5_VERSION_GE(1,8,11)
 
 -- |Scatters data provided by the callback op to the
@@ -464,6 +520,16 @@ type H5D_gather_func_t a b = FunPtr (InArray a -> CSize -> InOut b -> IO HErr_t)
 -- > herr_t H5Ddebug(hid_t dset_id);
 #ccall H5Ddebug, <hid_t> -> IO <herr_t>
 
+#if H5_VERSION_GE(1,10,0)
+
+-- |Internal API routines
+-- > H5_DLL herr_t H5Dformat_convert(hid_t dset_id);
+#ccall H5Dformat_convert, <hid_t> -> IO <herr_t>
+
+-- > H5_DLL herr_t H5Dget_chunk_index_type(hid_t did, H5D_chunk_index_t *idx_type);
+#ccall H5Dget_chunk_index_type, <hid_t> -> IO H5D_chunk_index_t
+
+#endif
 
 #ifndef H5_NO_DEPRECATED_SYMBOLS
 

@@ -3,7 +3,7 @@ module Bindings.HDF5.Raw.Util where
 import Bindings.HDF5.Raw
 
 hboolToBool :: HBool_t -> Bool
-hboolToBool (HBool_t n) = (n /= 0)
+hboolToBool (HBool_t n) = n /= 0
 
 boolToHBool :: Bool -> HBool_t
 boolToHBool True  = HBool_t 1

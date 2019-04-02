@@ -3,17 +3,16 @@
 #include <H5Zpublic.h>
 
 module Bindings.HDF5.Raw.H5Z where
--- #strict_import
-import Foreign.C.Types
-import Foreign.C.String (CString)
-import Foreign.Ptr
-import Foreign.Storable
+
 import Data.Int
 import Data.Word
+import Foreign.C.String
+import Foreign.C.Types
+import Foreign.Ptr
+import Foreign.Storable
 
 import Bindings.HDF5.Raw.H5
 import Bindings.HDF5.Raw.H5I
-
 import Foreign.Ptr.Conventions
 
 -- |Filter identifiers.  Values 0 through 255 are for filters defined by the

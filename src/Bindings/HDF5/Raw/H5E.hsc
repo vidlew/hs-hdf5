@@ -2,20 +2,20 @@
 #include <H5Epublic.h>
 
 module Bindings.HDF5.Raw.H5E where
--- #strict_import
-import Foreign.Storable
-import Foreign.C.Types
+
 import Data.Int
 import Data.Word
+import Foreign.C.String
+import Foreign.C.Types
+import Foreign.Marshal.Alloc
+import Control.Monad
 import Foreign.Ptr
-import Foreign.C.String (CString)
-import Foreign.Marshal.Alloc (alloca)
+import Foreign.Storable
+
+import Foreign.LibFFI
 
 import Bindings.HDF5.Raw.H5
 import Bindings.HDF5.Raw.H5I
-
-import Foreign (nullPtr, nullFunPtr)
-import Foreign.LibFFI
 import Foreign.Ptr.Conventions
 
 -- |Value for the default error stack
@@ -358,24 +358,24 @@ newtype H5E_TRY_STATE
 h5e_BEGIN_TRY :: IO H5E_TRY_STATE
 h5e_BEGIN_TRY = do
     isV2 <- alloca $ \isV2 -> do
-        _ <- h5e_auto_is_v2 h5e_DEFAULT (Out isV2)
+        void $ h5e_auto_is_v2 h5e_DEFAULT (Out isV2)
         peek isV2
 
     alloca $ \cdata -> if isV2 /= 0
         then alloca $ \func -> do
-            _ <- h5e_get_auto2 h5e_DEFAULT (Out func) (Out cdata)
-            _ <- h5e_set_auto2 h5e_DEFAULT nullFunPtr (InOut nullPtr)
+            void $ h5e_get_auto2 h5e_DEFAULT (Out func) (Out cdata)
+            void $ h5e_set_auto2 h5e_DEFAULT nullFunPtr (InOut nullPtr)
 
-            func' <- peek func
-            cdata' <- peek cdata
-            return (H5E_TRY_STATE (Right func', cdata'))
+            func_ <- peek func
+            cdata_ <- peek cdata
+            return (H5E_TRY_STATE (Right func_, cdata_))
         else alloca $ \func -> do
-            _ <- h5e_get_auto1 (Out func) (Out cdata)
-            _ <- h5e_set_auto1 nullFunPtr (InOut nullPtr)
+            void $ h5e_get_auto1 (Out func) (Out cdata)
+            void $ h5e_set_auto1 nullFunPtr (InOut nullPtr)
 
-            func' <- peek func
-            cdata' <- peek cdata
-            return (H5E_TRY_STATE (Left func', cdata'))
+            func_ <- peek func
+            cdata_ <- peek cdata
+            return (H5E_TRY_STATE (Left func_, cdata_))
 
 h5e_END_TRY :: H5E_TRY_STATE -> IO HErr_t
 h5e_END_TRY (H5E_TRY_STATE (Right func, cdata)) = h5e_set_auto2 h5e_DEFAULT func cdata
@@ -387,7 +387,7 @@ h5e_try :: IO a -> IO a
 h5e_try action = do
     tryState <- h5e_BEGIN_TRY
     result <- action
-    _ <- h5e_END_TRY tryState
+    void $ h5e_END_TRY tryState
     return result
 
 -- TODO: wrap these up in an exported header file (something like "Bindings.HDF5.Raw.H5E.h") as macros for use in haskell code, or maybe as TH macros

@@ -2,16 +2,15 @@
 #include <H5Apublic.h>
 
 module Bindings.HDF5.Raw.H5I where
--- #strict_import
-import Foreign.Storable
-import Foreign.Ptr
-import Foreign.C.Types
-import Data.Int
-
-import Bindings.HDF5.Raw.H5
 
 import Data.Bits
 import Data.Char
+import Data.Int
+import Foreign.C.Types
+import Foreign.Ptr
+import Foreign.Storable
+
+import Bindings.HDF5.Raw.H5
 import Foreign.Ptr.Conventions
 
 -- |Library type values
@@ -68,7 +67,15 @@ import Foreign.Ptr.Conventions
 -- TODO: I think HId_t should be parameterised over the element type and
 -- possibly also dimensionality of the dataset
 -- |Type of atoms to return to users
+#if H5_VERSION_GE(1,10,0)
+
+newtype HId_t = HId_t Int64 deriving (Storable, Eq, Ord)
+
+#else
+
 newtype HId_t = HId_t Int32 deriving (Storable, Eq, Ord)
+
+#endif
 
 instance Show HId_t where
     showsPrec p (HId_t x) = showParen (p>10)
@@ -80,6 +87,10 @@ instance Show HId_t where
             , let digit = ((x .&. mask) `shiftR` place) .&. 0xf
             ]
         )
+#if __HASKELL_VERSION__ < 710
+      where
+        finiteBitSize = bitSize
+#endif
 
 h5_SIZEOF_HID_T :: CSize
 h5_SIZEOF_HID_T = #const H5_SIZEOF_HID_T

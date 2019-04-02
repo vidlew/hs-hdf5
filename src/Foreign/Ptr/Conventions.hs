@@ -7,14 +7,12 @@ module Foreign.Ptr.Conventions where
 -- TODO: bytestring versions?  versions allocating by byte but using vectors?
 import Foreign.C.Types
 import Foreign.Marshal
-import Foreign.Ptr (Ptr, nullPtr, castPtr)
+import Foreign.Ptr
 import Foreign.ForeignPtr
 import Foreign.Storable
 
 import Control.Monad.IO.Class
--- package: monad-trans
 import Control.Monad.Trans.Control
--- package: lifted-base
 import Control.Exception.Lifted
 
 import qualified Data.ByteString as BS
@@ -85,7 +83,7 @@ withOut_ f = liftBaseOp alloca $ \p -> do
     liftIO (peek p)
 
 withOutMVector :: (Storable a, MonadBaseControl IO m) => SVM.IOVector a -> (Int -> OutArray a -> m b) -> m b
-withOutMVector vec f = do
+withOutMVector vec f =
     liftBaseOp (SVM.unsafeWith vec) (f (SVM.length vec) . OutArray)
 
 withOutVector :: (Storable a, MonadBaseControl IO m, MonadIO m) => Int -> (OutArray a -> m b) -> m (SV.Vector a, b)
@@ -184,8 +182,8 @@ withInOut :: (Storable a, MonadBaseControl IO m, MonadIO m) => a -> (InOut a -> 
 withInOut a f = liftBaseOp alloca $ \p -> do
     liftIO (poke p a)
     b <- f (InOut p)
-    a' <- liftIO (peek p)
-    return (a',b)
+    a_ <- liftIO (peek p)
+    return (a_,b)
 
 withInOut_ :: (Storable a, MonadBaseControl IO m, MonadIO m) => a -> (InOut a -> m b) -> m a
 withInOut_ a f = liftBaseOp alloca $ \p -> do

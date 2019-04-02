@@ -17,6 +17,11 @@ description:            This is a low-level but typesafe Haskell interface to th
 source-repository head
   type: git
   location: git://github.com/mokus0/hs-hdf5.git
+  
+Flag useEmbededLibFFI
+  Description: Enable the embeded libffi
+  Default:     True
+
 
 Library
   hs-source-dirs:       src
@@ -85,6 +90,16 @@ Library
                       , Bindings.HDF5.Raw.Util
                       , Foreign.Ptr.Conventions
 
+  if flag(useEmbededLibFFI)
+    other-modules:      Foreign.LibFFI
+                      , Foreign.LibFFI.Base
+                      , Foreign.LibFFI.Types
+                      , Foreign.LibFFI.FFITypes
+                      , Foreign.LibFFI.Internal
+
+  else
+    build-depends:      libffi
+
   c-sources:            cbits/H5_inline.c
                       , cbits/H5E_inline.c
                       , cbits/H5FD_inline.c
@@ -99,17 +114,14 @@ Library
                       , bytestring
                       , tagged
                       , vector
-                      , bindings-DSL >= 1.0.24 && < 1.1
-                      , libffi
+                      , bindings-DSL
                       , monad-control
                       , lifted-base
                       , primitive
                       , transformers
 
-  include-dirs:         include, /usr/local/include
-  extra-lib-dirs:       /usr/local/lib
-  extra-libraries:      hdf5
-
+  include-dirs:         include
+  pkgconfig-depends:    hdf5, libffi
 
 
 test-suite hdf5-test

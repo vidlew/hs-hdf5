@@ -2,19 +2,18 @@
 #include <H5Lpublic.h>
 
 module Bindings.HDF5.Raw.H5L where
--- #strict_import
-import Foreign.Storable
-import Foreign.Ptr
-import Foreign.C.Types
+
 import Data.Int
 import Data.Word
-import Foreign.C.String (CString)
-import Foreign.Marshal.Alloc (alloca)
+import Foreign.C.String
+import Foreign.C.Types
+import Foreign.Marshal.Alloc
+import Foreign.Ptr
+import Foreign.Storable
 
 import Bindings.HDF5.Raw.H5
 import Bindings.HDF5.Raw.H5I
 import Bindings.HDF5.Raw.H5T
-
 import Foreign.Ptr.Conventions
 
 -- |Maximum length of a link's name
@@ -480,3 +479,4 @@ type H5L_elink_traverse_t a = FunPtr (CString
 -- > herr_t H5Lcreate_external(const char *file_name, const char *obj_name,
 -- >     hid_t link_loc_id, const char *link_name, hid_t lcpl_id, hid_t lapl_id);
 #ccall H5Lcreate_external, CString -> CString -> <hid_t> -> CString -> <hid_t> -> <hid_t> -> IO <herr_t>
+

@@ -2,18 +2,15 @@ module Bindings.HDF5.Raw.H5A where
 #include <bindings.h>
 #include <H5Apublic.h>
 
--- #strict_import
-import Foreign.Storable
+import Foreign.C.String
 import Foreign.C.Types
 import Foreign.Ptr
-import Foreign.C.String (CString)
+import Foreign.Storable
 
 import Bindings.HDF5.Raw.H5
-
 import Bindings.HDF5.Raw.H5I -- IDs
 import Bindings.HDF5.Raw.H5O -- Object Headers
 import Bindings.HDF5.Raw.H5T -- Datatypes
-
 import Foreign.Ptr.Conventions
 
 -- |Information struct for attribute (for 'h5a_get_info'/'h5a_get_info_by_idx')

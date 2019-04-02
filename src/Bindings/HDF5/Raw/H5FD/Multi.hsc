@@ -1,24 +1,23 @@
 #include <bindings.h>
-#include <H5FDcore.h>
+#include <hdf5.h>
 
 -- |H5FDmulti Implements a file driver which dispatches I/O requests to
 -- other file drivers depending on the purpose of the address
 -- region being accessed. For instance, all meta-data could be
 -- placed in one file while all raw data goes to some other file.
 module Bindings.HDF5.Raw.H5FD.Multi where
--- #strict_import
-import Foreign.Ptr
-import Foreign.C.String (CString)
 
+import Foreign.C.String
+import Foreign.Ptr
 import System.IO.Unsafe (unsafePerformIO)
 
 import Bindings.HDF5.Raw.H5
 import Bindings.HDF5.Raw.H5I
 import Bindings.HDF5.Raw.H5FD
-
 import Foreign.Ptr.Conventions
 
-h5fd_MULTI :: HId_t
+#mangle_ident "H5FD_MULTI"
+  :: HId_t
 #mangle_ident "H5FD_MULTI"
     = unsafePerformIO (#mangle_ident "H5FD_multi_init")
 
@@ -30,10 +29,12 @@ h5fd_MULTI :: HId_t
 -- > hid_t H5FD_multi_init(void);
 #ccall H5FD_multi_init, IO <hid_t>
 
+#if H5_VERSION_LE(1,8,18)
 -- Shut down the VFD
 --
 -- > void H5FD_multi_term(void);
 #ccall H5FD_multi_term, IO ()
+#endif
 
 -- TODO: find out whether input arrays need to be static... Probably not, since H5Pget_fapl_multi copies them out.
 -- |Sets the file access property list 'fapl_id' to use the multi
@@ -158,3 +159,5 @@ h5fd_MULTI :: HId_t
 -- >        hid_t meta_plist_id, const char *raw_ext,
 -- >        hid_t raw_plist_id);
 #ccall H5Pset_fapl_split, <hid_t> -> CString -> <hid_t> -> CString -> <hid_t> -> IO <herr_t>
+
+

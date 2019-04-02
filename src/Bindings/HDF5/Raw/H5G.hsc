@@ -2,20 +2,18 @@
 #include <H5Gpublic.h>
 
 module Bindings.HDF5.Raw.H5G where
--- #strict_import
-import Foreign.Storable
-import Foreign.Ptr
-import Foreign.C.Types
-import Foreign.C.String (CString)
+
 import Data.Int
-import Foreign.Marshal.Array (peekArray,pokeArray)
+import Foreign.C.String
+import Foreign.C.Types
+import Foreign.Marshal.Array
+import Foreign.Ptr
+import Foreign.Storable
 
 import Bindings.HDF5.Raw.H5
-
 import Bindings.HDF5.Raw.H5I
 import Bindings.HDF5.Raw.H5L
 import Bindings.HDF5.Raw.H5O
-
 import Foreign.Ptr.Conventions
 
 -- |Types of link storage for groups
@@ -166,6 +164,12 @@ import Foreign.Ptr.Conventions
 -- > herr_t H5Gclose(hid_t group_id);
 #ccall H5Gclose, <hid_t> -> IO <herr_t>
 
+#if H5_VERSION_GE(1,10,0)
+-- > herr_t H5Gflush(hid_t group_id);
+#ccall H5Gflush, <hid_t> -> IO <herr_t>
+-- > herr_t H5Grefresh(hid_t group_id);
+#ccall H5Grefresh, <hid_t> -> IO <herr_t>
+#endif
 
 #ifndef H5_NO_DEPRECATED_SYMBOLS
 

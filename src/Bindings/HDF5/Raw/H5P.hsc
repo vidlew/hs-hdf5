@@ -277,7 +277,12 @@ type H5P_iterate_t a = FunPtr (HId_t -> CString -> InOut a -> IO HErr_t)
 #newtype_const H5D_mpio_no_collective_cause_t, H5D_MPIO_DATA_TRANSFORMS
 #newtype_const H5D_mpio_no_collective_cause_t, H5D_MPIO_NOT_SIMPLE_OR_SCALAR_DATASPACES
 #newtype_const H5D_mpio_no_collective_cause_t, H5D_MPIO_NOT_CONTIGUOUS_OR_CHUNKED_DATASET
+
+#if H5_VERSION_GE(1,10,2)
+#newtype_const H5D_mpio_no_collective_cause_t, H5D_MPIO_NO_COLLECTIVE_MAX_CAUSE
+#else
 #newtype_const H5D_mpio_no_collective_cause_t, H5D_MPIO_FILTERS
+#endif
 
 #endif
 

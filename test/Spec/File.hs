@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module Spec.File ( describeFile ) where
 
 import Test.Hspec
@@ -57,6 +58,8 @@ describeFile = do
       vec <- F.getOpenObjects (Just file)True [F.All]
       SV.length vec `shouldBe` 1
 
+#if MIN_VERSION_hspec(2,2,5)
     xit "test file has no free space" $ \file -> do
       size <- F.getFileFreespace file
       size `shouldBe` 0  -- with hdf5 1.10.4 it returns 1248
+#endif

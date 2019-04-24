@@ -17,7 +17,7 @@ description:            This is a low-level but typesafe Haskell interface to th
 source-repository head
   type: git
   location: git://github.com/mokus0/hs-hdf5.git
-  
+
 Flag useEmbededLibFFI
   Description: Enable the embeded libffi
   Default:     True
@@ -59,7 +59,7 @@ Library
                       , Bindings.HDF5.PropertyList.TAPL
                       , Bindings.HDF5.PropertyList.TCPL
 
-  other-modules:        Bindings.HDF5.Core.HDFResultType
+                      , Bindings.HDF5.Core.HDFResultType
                       , Bindings.HDF5.Core.HId
                       , Bindings.HDF5.Raw.H5
                       , Bindings.HDF5.Raw.H5A

@@ -57,10 +57,10 @@ import Foreign.Ptr.Conventions
 #cinline H5P_LINK_CREATE_DEFAULT,           <hid_t>
 #cinline H5P_LINK_ACCESS_DEFAULT,           <hid_t>
 
--- #if H5_VERSION_GE(1,10,0)
+#if !H5_VERSION_GE(1,8,18)
 #cinline H5P_ATTRIBUTE_ACCESS,              <hid_t>
 #cinline H5P_ATTRIBUTE_ACCESS_DEFAULT,      <hid_t>
--- #endif
+#endif
 
 -- |Default value for all property list classes
 #newtype_const hid_t, H5P_DEFAULT

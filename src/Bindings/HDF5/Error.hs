@@ -63,7 +63,7 @@ readHDF5Error err = do
     return HDF5Error
         { classId       = ErrorClassID (h5e_error2_t'cls_id err)
         , majorNum      = majorErrorFromCode (h5e_error2_t'maj_num err)
-        , minorNum      = minorErrorFromCode (h5e_error2_t'maj_num err)
+        , minorNum      = minorErrorFromCode (h5e_error2_t'min_num err)
         , line          = toInteger (h5e_error2_t'line err)
         , funcName      = func
         , fileName      = file

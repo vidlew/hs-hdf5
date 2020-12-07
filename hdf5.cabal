@@ -30,6 +30,7 @@ Library
   ghc-options:          -Wall
   cc-options:           -Wno-format
   exposed-modules:      Bindings.HDF5
+                      , Bindings.HDF5.Attribute
                       , Bindings.HDF5.Raw
                       , Bindings.HDF5.Core
                       , Bindings.HDF5.Dataset

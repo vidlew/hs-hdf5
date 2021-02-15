@@ -13,17 +13,22 @@ module Bindings.HDF5.Attribute
     , openAttribute
     , closeAttribute
 
-    -- , readAttribute
+    , getAttributeSpace
+    , readAttribute
     ) where
 
 
-import qualified Data.ByteString       as BS
+import qualified Data.ByteString                 as BS
+import qualified Data.Vector.Storable            as SV
 
 import           Bindings.HDF5.Core
+import           Bindings.HDF5.Dataspace
+import           Bindings.HDF5.Datatype.Internal
 import           Bindings.HDF5.Error
 import           Bindings.HDF5.Raw.H5A
 import           Bindings.HDF5.Raw.H5I
 import           Bindings.HDF5.Raw.H5P
+import           Foreign.Ptr.Conventions
 
 -- * The Attribute type
 
@@ -48,6 +53,10 @@ closeAttribute (Attribute attr) =
     withErrorCheck_ $
         h5a_close attr
 
+getAttributeSpace :: Attribute -> IO Dataspace
+getAttributeSpace (Attribute attr_id) =
+    uncheckedFromHId
+    <$> withErrorCheck (h5a_get_space attr_id)
 
 -- |Read in data from an attribute
 --
@@ -65,13 +74,13 @@ closeAttribute (Attribute attr) =
 --
 -- > herr_t  H5Aread(hid_t attr_id, hid_t type_id, void *buf);
 
--- readAttribute :: NativeType t =>
---                 Attribute
---               -> IO (SV.Vector t)
--- readAttribute attr@(Attribute attr_id) = do
---     effectiveSelection <- maybe (getDatasetSpace dset) return file_space_id
---     n <- getSimpleDataspaceExtentNPoints effectiveSelection
+readAttribute :: NativeType t =>
+                Attribute
+              -> IO (SV.Vector t)
+readAttribute attr@(Attribute attr_id) = do
+  space <- getAttributeSpace attr
+  n <- getSimpleDataspaceExtentNPoints space
 
---     withOutVector_ (fromIntegral n) $ \buf ->
---         withErrorCheck_ $
---             h5a_read attr_id (hdfTypeOf1 buf) buf
+  withOutVector_ (fromIntegral n) $ \buf ->
+    withErrorCheck_ $
+      h5a_read attr_id (hdfTypeOf1 buf) buf

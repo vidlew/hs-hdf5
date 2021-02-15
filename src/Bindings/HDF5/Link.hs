@@ -49,23 +49,24 @@ module Bindings.HDF5.Link
     , visitLinksByName
     ) where
 
-import Bindings.HDF5.Core
-import Bindings.HDF5.Datatype.Internal
-import Bindings.HDF5.Error
-import Bindings.HDF5.Group
-import Bindings.HDF5.PropertyList.LAPL
-import Bindings.HDF5.PropertyList.LCPL
-import Bindings.HDF5.Raw.H5
-import Bindings.HDF5.Raw.H5I
-import Bindings.HDF5.Raw.H5L
-import Bindings.HDF5.Raw.H5P
-import Bindings.HDF5.Raw.Util
-import Control.Exception (SomeException, try, finally, throwIO)
-import qualified Data.ByteString as BS
-import Data.IORef
-import Foreign
-import Foreign.C
-import Foreign.Ptr.Conventions
+import           Bindings.HDF5.Core
+import           Bindings.HDF5.Datatype.Internal
+import           Bindings.HDF5.Error
+import           Bindings.HDF5.Group
+import           Bindings.HDF5.PropertyList.LAPL
+import           Bindings.HDF5.PropertyList.LCPL
+import           Bindings.HDF5.Raw.H5
+import           Bindings.HDF5.Raw.H5I
+import           Bindings.HDF5.Raw.H5L
+import           Bindings.HDF5.Raw.H5P
+import           Bindings.HDF5.Raw.Util
+import           Control.Exception               (SomeException, finally,
+                                                  throwIO, try)
+import qualified Data.ByteString                 as BS
+import           Data.IORef
+import           Foreign
+import           Foreign.C
+import           Foreign.Ptr.Conventions
 
 {-# ANN module "HLint: ignore Use camelCase" #-}
 
@@ -142,12 +143,12 @@ linkTypeFromCode c
 
 
 data LinkInfo = LinkInfo
-    { linkType          :: LinkType
-    , linkCOrderValid   :: Bool
-    , linkCOrder        :: Int64
-    , linkCSet          :: CSet
-    , linkAddress       :: HAddr
-    , linkValSize       :: CSize
+    { linkType        :: LinkType
+    , linkCOrderValid :: Bool
+    , linkCOrder      :: Int64
+    , linkCSet        :: CSet
+    , linkAddress     :: HAddr
+    , linkValSize     :: CSize
     } deriving (Eq, Ord, Read, Show)
 
 readLinkInfo :: H5L_info_t -> LinkInfo

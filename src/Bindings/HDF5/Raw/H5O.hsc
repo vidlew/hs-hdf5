@@ -104,7 +104,7 @@ import Foreign.Ptr.Conventions
 #newtype_const H5O_type_t, H5O_TYPE_UNKNOWN
 
 -- |Object is a group
-#newtype_const H5O_type_t, H5O_TYPE_GROUP	
+#newtype_const H5O_type_t, H5O_TYPE_GROUP
 
 -- |Object is a dataset
 #newtype_const H5O_type_t, H5O_TYPE_DATASET
@@ -235,7 +235,7 @@ import Foreign.Ptr.Conventions
 
 
 -- |Typedef for message creation indexes
-#newtype H5O_msg_crt_idx_t, Eq
+#newtype H5O_msg_crt_idx_t, Eq, Ord, Read
 
 -- |Prototype for 'h5o_visit' / 'h5o_visit_by_name' operator
 type H5O_iterate_t a = FunPtr (HId_t -> CString -> In H5O_info_t -> InOut a -> IO HErr_t)
@@ -639,4 +639,3 @@ type H5O_mcdt_search_cb_t a = FunPtr (InOut a -> IO H5O_mcdt_search_ret_t)
 #stoptype
 
 #endif /* H5_NO_DEPRECATED_SYMBOLS */
-

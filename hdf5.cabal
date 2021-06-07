@@ -137,5 +137,7 @@ test-suite hdf5-test
                      , bytestring
                      , exceptions
                      , vector
-  other-modules:       Spec.Util, Spec.File
+  other-modules:       Spec.Util
+                     , Spec.File
+                     , Spec.Group
   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N

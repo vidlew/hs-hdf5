@@ -13,7 +13,7 @@
   h5l_create_ud                 	[ FAIL ]
   h5l_create_hard               	[  OK  ]
   h5l_is_registered             	[ FAIL ]
-  h5l_get_name_by_idx           	[ FAIL ]
+  h5l_get_name_by_idx           	[  OK  ]
   h5l_create_soft               	[  OK  ]
   h5l_copy                      	[  OK  ]
   h5l_get_val                   	[  OK  ]
@@ -29,6 +29,8 @@ module Bindings.HDF5.Link
     ( createHardLink
     , createSoftLink
     , createExternalLink
+
+    , getLinkNameByIdx
 
     , doesLinkExist
 
@@ -95,6 +97,12 @@ createExternalLink file obj loc name lcpl lapl =
             BS.useAsCString obj $ \cobj ->
                 BS.useAsCString name $ \cname ->
                     h5l_create_external cfile cobj (hid loc) cname (maybe h5p_DEFAULT hid lcpl) (maybe h5p_DEFAULT hid lapl)
+
+getLinkNameByIdx :: Location loc =>  loc -> BS.ByteString -> IndexType -> IterOrder -> HSize -> Maybe LAPL -> IO BS.ByteString
+getLinkNameByIdx loc group indexType order idx lapl =
+  withOutByteString' $ \cname nameSize ->
+  BS.useAsCString group $ \cgroup ->
+  h5l_get_name_by_idx (hid loc) cgroup (indexTypeCode indexType) (iterOrderCode order) (hSize idx) cname nameSize (maybe h5p_DEFAULT hid lapl)
 
 doesLinkExist :: Location loc => loc -> BS.ByteString -> Maybe LAPL -> IO Bool
 doesLinkExist loc name lapl =

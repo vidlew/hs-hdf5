@@ -1,15 +1,16 @@
-module Spec.Util (
-  withTestFile
+module Spec.Util
+  ( withTestFile
   , withTestFile'
+  , withGroup
   ) where
 
-import System.IO.Temp
-import System.IO
-import Control.Exception (bracket)
+import           Control.Exception     (bracket)
+import           System.IO
+import           System.IO.Temp
 
+import qualified Bindings.HDF5.File    as F
+import qualified Bindings.HDF5.Group   as G
 import qualified Data.ByteString.Char8 as BS
-import qualified Bindings.HDF5.File as F
-import qualified Bindings.HDF5.Group as G
 
 -- TODO : Use H5FD_CORE driver to avoid writing files : will require high-level wrapper for H5Pset_fapl_core
 

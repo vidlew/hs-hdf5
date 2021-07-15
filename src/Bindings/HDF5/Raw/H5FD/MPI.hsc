@@ -1,4 +1,5 @@
 #include <bindings.h>
+#include <hdf5.h>
 #include <H5FDmpi.h>
 #include "H5FDmpio.h"
 -- #include "H5FDmpiposix.h" : Not compatible with latest brew hdf

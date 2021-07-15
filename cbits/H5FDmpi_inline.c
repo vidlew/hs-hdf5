@@ -7,6 +7,6 @@
 
 #ifdef H5_HAVE_PARALLEL
 
-BC_INLINE_(H5FD_mpi_native_g, char *)
+// BC_INLINE_(H5FD_mpi_native_g, char *)
 
 #endif /* H5_HAVE_PARALLEL */

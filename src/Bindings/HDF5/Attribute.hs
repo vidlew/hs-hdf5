@@ -35,6 +35,7 @@ import           Bindings.HDF5.Dataspace
 import           Bindings.HDF5.Datatype.Internal
 import           Bindings.HDF5.Error
 import           Bindings.HDF5.Group
+import           Bindings.HDF5.Object
 import           Bindings.HDF5.PropertyList.LAPL
 import           Bindings.HDF5.Raw.H5
 import           Bindings.HDF5.Raw.H5A
@@ -51,14 +52,13 @@ newtype Attribute = Attribute HId_t
 
 -- | Open an existing attribute
 
-openAttribute :: Location t =>
-                t              -- ^ Parent location
+openAttribute :: ObjectId -- ^ Parent location
               -> BS.ByteString  -- ^ Attribute name
               -> IO Attribute   -- ^ Resulting attribute
-openAttribute loc name =
+openAttribute obj name =
     Attribute <$> (withErrorCheck $
                    BS.useAsCString name $ \cname ->
-                       h5a_open (hid loc) cname h5p_DEFAULT)
+                       h5a_open (hid obj) cname h5p_DEFAULT)
 
 -- | Close an Attribute
 
@@ -151,19 +151,19 @@ with_operator2_t op f = do
 
 -- TODO : It would be nice if we didn't expose HErr_t in these callback functions.
 --        Decide whether we want Either or Exceptions.
-iterateAttributes :: Location t => t -> IndexType -> IterOrder -> Maybe HSize -> (Group -> BS.ByteString -> AttributeInfo -> IO HErr_t) -> IO HSize
-iterateAttributes loc indexType order startIndex op =
+iterateAttributes :: ObjectId-> IndexType -> IterOrder -> Maybe HSize -> (Group -> BS.ByteString -> AttributeInfo -> IO HErr_t) -> IO HSize
+iterateAttributes obj indexType order startIndex op =
     fmap HSize $
         withInOut_ (maybe 0 hSize startIndex) $ \ioStartIndex ->
             withErrorCheck_ $
                 with_operator2_t op $ \iop opData ->
-                    h5a_iterate2 (hid loc) (indexTypeCode indexType) (iterOrderCode order) ioStartIndex iop opData
+                    h5a_iterate2 (hid obj) (indexTypeCode indexType) (iterOrderCode order) ioStartIndex iop opData
 
-iterateAttributesByName :: Location t => t -> BS.ByteString -> IndexType -> IterOrder -> Maybe HSize -> Maybe LAPL -> (Group -> BS.ByteString -> AttributeInfo -> IO HErr_t) -> IO HSize
-iterateAttributesByName loc groupName indexType order startIndex lapl op =
+iterateAttributesByName :: ObjectId -> BS.ByteString -> IndexType -> IterOrder -> Maybe HSize -> Maybe LAPL -> (Group -> BS.ByteString -> AttributeInfo -> IO HErr_t) -> IO HSize
+iterateAttributesByName obj groupName indexType order startIndex lapl op =
     fmap HSize $
         withInOut_ (maybe 0 hSize startIndex) $ \ioStartIndex ->
             withErrorCheck_ $
                 with_operator2_t op $ \iop opData ->
                     BS.useAsCString groupName $ \cgroupName ->
-                        h5a_iterate_by_name (hid loc) cgroupName (indexTypeCode indexType) (iterOrderCode order) ioStartIndex iop opData (maybe h5p_DEFAULT hid lapl)
+                        h5a_iterate_by_name (hid obj) cgroupName (indexTypeCode indexType) (iterOrderCode order) ioStartIndex iop opData (maybe h5p_DEFAULT hid lapl)

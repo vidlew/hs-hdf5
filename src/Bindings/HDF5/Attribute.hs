@@ -11,11 +11,15 @@ Feature coverage is as follows:
 module Bindings.HDF5.Attribute
     ( Attribute
     , openAttribute
-    , closeAttribute
 
+    , getAttributeType
     , getAttributeInfo
     , getAttributeSpace
+
     , readAttribute
+
+    , doesAttributeExist
+    , closeAttribute
 
     , iterateAttributes
     , iterateAttributesByName
@@ -60,6 +64,11 @@ openAttribute obj name =
                    BS.useAsCString name $ \cname ->
                        h5a_open (hid obj) cname h5p_DEFAULT)
 
+getAttributeType :: Attribute -> IO Datatype
+getAttributeType (Attribute attr_id) =
+    Datatype <$> (withErrorCheck $
+                   h5a_get_type attr_id)
+
 -- | Close an Attribute
 
 closeAttribute :: Attribute -> IO ()
@@ -98,6 +107,12 @@ readAttribute attr@(Attribute attr_id) = do
   withOutVector_ (fromIntegral n) $ \buf ->
     withErrorCheck_ $
       h5a_read attr_id (hdfTypeOf1 buf) buf
+
+doesAttributeExist :: ObjectId -- ^ Parent location
+                   -> BS.ByteString  -- ^ Attribute name
+                   -> IO Bool   -- ^ Resulting attribute
+doesAttributeExist obj aname =
+  htriToBool $ BS.useAsCString aname $ \cname -> h5a_exists (hid obj) cname
 
 data AttributeInfo = AttributeInfo
     { attributeCOrderValid :: Bool

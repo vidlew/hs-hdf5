@@ -17,6 +17,7 @@ module Bindings.HDF5.Attribute
     , getAttributeSpace
 
     , readAttribute
+    , readAttributeStringASCII
 
     , doesAttributeExist
     , closeAttribute
@@ -36,6 +37,7 @@ import           Foreign.C
 
 import           Bindings.HDF5.Core
 import           Bindings.HDF5.Dataspace
+import           Bindings.HDF5.Datatype
 import           Bindings.HDF5.Datatype.Internal
 import           Bindings.HDF5.Error
 import           Bindings.HDF5.Group
@@ -107,6 +109,22 @@ readAttribute attr@(Attribute attr_id) = do
   withOutVector_ (fromIntegral n) $ \buf ->
     withErrorCheck_ $
       h5a_read attr_id (hdfTypeOf1 buf) buf
+
+-- | for now this method read only Bytestring this part is a bit fragile...
+-- | we should check thaht the attr type is compatible with the string type.
+-- | TODO fnd a better way to deal with all kind of attribute type...
+readAttributeStringASCII :: Attribute -> IO BS.ByteString
+readAttributeStringASCII attr@(Attribute attr_id) = do
+  space <- getAttributeSpace attr
+  n <- getSimpleDataspaceExtentNPoints space
+
+  atype <- getAttributeType attr
+  ts <- getTypeSize atype
+
+  let nbytes = fromIntegral n * fromIntegral ts
+  allocaBytes nbytes $ \buf -> do
+    withErrorCheck_ $ h5a_read attr_id (hid atype) (wrapPtr buf)
+    BS.packCStringLen (buf, nbytes)
 
 doesAttributeExist :: ObjectId -- ^ Parent location
                    -> BS.ByteString  -- ^ Attribute name

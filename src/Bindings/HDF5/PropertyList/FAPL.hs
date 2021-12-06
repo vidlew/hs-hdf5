@@ -10,15 +10,19 @@ module Bindings.HDF5.PropertyList.FAPL
 
     , setFamilyOffset
     , getFamilyOffset
+
+    , setFCloseDegree
+    , getFCloseDegree
     ) where
 
-import Bindings.HDF5.Raw.H5P
-import Bindings.HDF5.Core
-import Bindings.HDF5.Error
-import Bindings.HDF5.PropertyList
+import           Bindings.HDF5.Core
+import           Bindings.HDF5.Error
+import           Bindings.HDF5.PropertyList
+import           Bindings.HDF5.Raw.H5F
+import           Bindings.HDF5.Raw.H5P
 
-import Control.Arrow ((***))
-import Foreign.Ptr.Conventions
+import           Control.Arrow              ((***))
+import           Foreign.Ptr.Conventions
 
 class PropertyList t => FileAccessPropertyList t where
 newtype FAPL = FAPL PropertyListID
@@ -58,6 +62,18 @@ getFamilyOffset fapl =
             withErrorCheck_ $
                 h5p_get_family_offset (hid fapl) offset
 
+setFCloseDegree :: FileAccessPropertyList fapl => fapl -> H5F_close_degree_t -> IO ()
+setFCloseDegree fapl degree =
+  withErrorCheck_ $
+  h5p_set_fclose_degree (hid fapl) degree
+
+getFCloseDegree :: FileAccessPropertyList fapl => fapl -> IO H5F_close_degree_t
+getFCloseDegree fapl =
+  withOut_ $ \degree ->
+    withErrorCheck_ $
+      h5p_get_fclose_degree (hid fapl) degree
+
+
 -- TODO: implement these
 -- h5p_set_multi_type :: HId_t -> H5FD_mem_t -> IO HErr_t
 -- h5p_get_multi_type :: HId_t -> Out H5FD_mem_t -> IO HErr_t
@@ -67,8 +83,6 @@ getFamilyOffset fapl =
 -- h5p_get_mdc_config :: HId_t -> Out H5AC_cache_config_t -> IO HErr_t
 -- h5p_set_gc_references :: HId_t -> CUInt -> IO HErr_t
 -- h5p_get_gc_references :: HId_t -> Out CUInt -> IO HErr_t
--- h5p_set_fclose_degree :: HId_t -> H5F_close_degree_t -> IO HErr_t
--- h5p_get_fclose_degree :: HId_t -> Out H5F_close_degree_t -> IO HErr_t
 -- h5p_set_meta_block_size :: HId_t -> HSize_t -> IO HErr_t
 -- h5p_get_meta_block_size :: HId_t -> Out HSize_t -> IO HErr_t
 -- h5p_set_sieve_buf_size :: HId_t -> CSize -> IO HErr_t
@@ -79,4 +93,3 @@ getFamilyOffset fapl =
 -- h5p_get_libver_bounds :: HId_t -> Out H5F_libver_t -> Out H5F_libver_t -> IO HErr_t
 -- h5p_set_elink_file_cache_size :: HId_t -> CUInt -> IO HErr_t
 -- h5p_get_elink_file_cache_size :: HId_t -> Out CUInt -> IO HErr_t
-

@@ -122,7 +122,7 @@ Library
                       , transformers
 
   include-dirs:         include
-  pkgconfig-depends:    hdf5, libffi
+  pkgconfig-depends:    hdf5-serial, libffi
 
 
 test-suite hdf5-test

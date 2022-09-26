@@ -6,7 +6,6 @@ cabal-version:          >= 1.10
 build-type:             Simple
 
 author:                 James Cook <mokus@deepbondi.net>
-maintainer:             James Cook <mokus@deepbondi.net>
 maintainer:             Picca Frédéric-Emmanuel <picca@synchrotron-soleil.fr>
 license:                PublicDomain
 homepage:               https://github.com/picca/hs-hdf5

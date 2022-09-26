@@ -17,7 +17,7 @@ description:            This is a low-level but typesafe Haskell interface to th
 
 source-repository head
   type: git
-  location: git://github.com/mokus0/hs-hdf5.git
+  location: git://github.com/picca/hs-hdf5.git
 
 Flag useEmbededLibFFI
   Description: Enable the embeded libffi

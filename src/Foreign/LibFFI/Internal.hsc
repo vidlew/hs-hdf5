@@ -4,7 +4,6 @@ module Foreign.LibFFI.Internal where
 
 #include <ffi.h>
 
-import Data.Int
 import Data.Word
 import Foreign.C.Types
 import Foreign.Ptr

@@ -66,22 +66,18 @@ module Foreign.LibFFI.Types (
     retMallocByteString
     ) where
 
-import Control.Monad
-import Data.List
-import Data.Char
-import Data.Int
-import Data.Word
+import           Data.Int
+import           Data.Word
 
-import Foreign.C.Types
-import Foreign.Ptr
-import Foreign.Storable
-import Foreign.C.String
-import Foreign.Marshal
-import qualified Data.ByteString as BS
-import qualified Data.ByteString.Unsafe as BSU
+import qualified Data.ByteString         as BS
+import qualified Data.ByteString.Unsafe  as BSU
+import           Foreign.C.String
+import           Foreign.C.Types
+import           Foreign.Marshal
+import           Foreign.Ptr
 
-import Foreign.LibFFI.Base
-import Foreign.LibFFI.FFITypes
+import           Foreign.LibFFI.Base
+import           Foreign.LibFFI.FFITypes
 
 argCInt     :: CInt -> Arg
 argCInt     = mkStorableArg ffi_type_sint

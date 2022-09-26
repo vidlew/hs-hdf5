@@ -1,22 +1,15 @@
 {- | This module defines the basic libffi machinery. You will need this to create support for new ffi types. -}
 module Foreign.LibFFI.Base where
 
-import Control.Monad
-import Data.List
-import Data.Char
-import Data.Int
-import Data.Word
+import           Control.Monad
+import           Data.List
 
-import Foreign.C.Types
-import Foreign.Ptr
-import Foreign.Storable
-import Foreign.C.String
-import Foreign.Marshal
-import qualified Data.ByteString as BS
-import qualified Data.ByteString.Unsafe as BSU
+import           Foreign.Marshal
+import           Foreign.Ptr
+import           Foreign.Storable
 
-import Foreign.LibFFI.Internal
-import Foreign.LibFFI.FFITypes
+import           Foreign.LibFFI.FFITypes
+import           Foreign.LibFFI.Internal
 
 newtype Arg = Arg { unArg :: IO (Ptr CType, Ptr CValue, IO ()) }
 

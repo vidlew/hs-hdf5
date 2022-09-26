@@ -7,8 +7,9 @@ build-type:             Simple
 
 author:                 James Cook <mokus@deepbondi.net>
 maintainer:             James Cook <mokus@deepbondi.net>
+maintainer:             Picca Frédéric-Emmanuel <picca@synchrotron-soleil.fr>
 license:                PublicDomain
-homepage:               https://github.com/mokus0/hs-hdf5
+homepage:               https://github.com/picca/hs-hdf5
 
 category:               Database
 synopsis:               Haskell interface to the HDF5 scientific data storage library.

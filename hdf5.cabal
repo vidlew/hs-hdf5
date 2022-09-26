@@ -2,7 +2,7 @@ name:                   hdf5
 version:                1.8.9
 stability:              provisional
 
-cabal-version:          >= 1.8
+cabal-version:          >= 1.10
 build-type:             Simple
 
 author:                 James Cook <mokus@deepbondi.net>

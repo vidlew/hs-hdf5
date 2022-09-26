@@ -18,10 +18,13 @@ source-repository head
   type: git
   location: git://github.com/picca/hs-hdf5.git
 
+extra-source-files: include/bindings.h
+                    include/mangle.h
+                    include/util.h
+
 Flag useEmbededLibFFI
   Description: Enable the embeded libffi
   Default:     False
-
 
 Library
   hs-source-dirs:       src
@@ -112,6 +115,7 @@ Library
                       , cbits/H5P_inline.c
                       , cbits/H5T_inline.c
 
+  include-dirs:         include
 
   build-depends:        base >= 3 && < 5
                       , bytestring
@@ -123,7 +127,6 @@ Library
                       , primitive
                       , transformers
 
-  include-dirs:         include
   pkgconfig-depends:    hdf5-serial, libffi
 
 

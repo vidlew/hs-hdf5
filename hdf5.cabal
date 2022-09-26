@@ -22,10 +22,6 @@ extra-source-files: include/bindings.h
                     include/mangle.h
                     include/util.h
 
-Flag useEmbededLibFFI
-  Description: Enable the embeded libffi
-  Default:     False
-
 Library
   hs-source-dirs:       src
   default-language:     Haskell2010
@@ -96,16 +92,6 @@ Library
                       , Bindings.HDF5.Raw.Util
                       , Foreign.Ptr.Conventions
 
-  if flag(useEmbededLibFFI)
-    other-modules:      Foreign.LibFFI
-                      , Foreign.LibFFI.Base
-                      , Foreign.LibFFI.Types
-                      , Foreign.LibFFI.FFITypes
-                      , Foreign.LibFFI.Internal
-
-  else
-    build-depends:      libffi
-
   c-sources:            cbits/H5_inline.c
                       , cbits/H5E_inline.c
                       , cbits/H5FD_inline.c
@@ -118,13 +104,14 @@ Library
   include-dirs:         include
 
   build-depends:        base >= 3 && < 5
+                      , bindings-DSL
                       , bytestring
+                      , libffi
+                      , lifted-base
+                      , monad-control
+                      , primitive
                       , tagged
                       , vector
-                      , bindings-DSL
-                      , monad-control
-                      , lifted-base
-                      , primitive
                       , transformers
 
   pkgconfig-depends:    hdf5-serial, libffi

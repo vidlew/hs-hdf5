@@ -21,7 +21,7 @@ source-repository head
 
 Flag useEmbededLibFFI
   Description: Enable the embeded libffi
-  Default:     True
+  Default:     False
 
 
 Library

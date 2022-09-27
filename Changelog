@@ -1,0 +1,9 @@
+1.8.10 [2022-09-27]
+------
+
+* Removed the embeded libffi code.
+
+1.8.9 [2022-09-26]
+-----
+
+* Initial hackage release

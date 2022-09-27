@@ -1,5 +1,5 @@
 name:                   hdf5
-version:                1.8.9
+version:                1.8.10
 stability:              provisional
 
 cabal-version:          >= 1.10
@@ -14,13 +14,14 @@ category:               Database
 synopsis:               Haskell interface to the HDF5 scientific data storage library.
 description:            This is a low-level but typesafe Haskell interface to the HDF5 library.  No pointers necessary.
 
+extra-source-files: Changelog
+                    include/bindings.h
+                    include/mangle.h
+                    include/util.h
+
 source-repository head
   type: git
   location: git://github.com/picca/hs-hdf5.git
-
-extra-source-files: include/bindings.h
-                    include/mangle.h
-                    include/util.h
 
 Library
   hs-source-dirs:       src
